@@ -6,6 +6,9 @@ ARCH=arm
 CROSS=armv5-glibc-linux-
 #CROSS=armv7hf-glibc-linux-
 
+# sub builds need absolute path
+CROSS=`which ${CROSS%-gcc}`
+
 # Output
 DISKZ=disk-base-static.tgz
 #DISKZ=disk-base-dynamic.tgz
