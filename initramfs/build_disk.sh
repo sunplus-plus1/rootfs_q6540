@@ -1,13 +1,37 @@
 #!/bin/bash
 
 # Toolchain
-export PATH="../../../build/tools/armv5-eabi--glibc--stable/bin/:$PATH"
 ARCH=arm
-CROSS=armv5-glibc-linux-
-#CROSS=armv7hf-glibc-linux-
+CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
+
+function abspath() {
+    # generate absolute path from relative path
+    # $1     : relative filename
+    # return : absolute path
+    if [ -d "$1" ]; then
+        # dir
+        (cd "$1"; pwd)
+    elif [ -f "$1" ]; then
+        # file
+        if [[ $1 = /* ]]; then
+            echo "$1"
+        elif [[ $1 == */* ]]; then
+            echo "$(cd "${1%/*}"; pwd)/${1##*/}"
+        else
+            echo "$(pwd)/$1"
+        fi
+    fi
+}
 
 # sub builds need absolute path
-CROSS=`which ${CROSS%-gcc}`
+CROSS=`abspath ${CROSS}gcc`
+echo $CROSS
+${CROSS} -v 2>/dev/null
+if [ $? -ne 0 ];then
+	echo "Not found gcc : $CROSS"
+	exit 1
+fi
+CROSS=${CROSS%gcc}
 
 # Output
 DISKZ=disk-base-static.tgz
@@ -44,5 +68,5 @@ echo make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT ins
 make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT all
 
 echo "Install busybox"
-cd $BBX && make -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install
+cd $BBX && make -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install && size $BBX/busybox
 echo "Installed ($BBXCFG)"
