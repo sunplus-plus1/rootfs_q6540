@@ -68,5 +68,12 @@ echo make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT ins
 make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT all
 
 echo "Install busybox"
-cd $BBX && make -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install && size $BBX/busybox
+cd $BBX && make -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install
+cd -
+size $BBX/busybox
 echo "Installed ($BBXCFG)"
+
+echo "Extra copy..."
+if [ -d extra/ ];then
+	cp -av extra/* $DISKOUT
+fi
