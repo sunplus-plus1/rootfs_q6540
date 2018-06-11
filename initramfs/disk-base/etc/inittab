@@ -1,0 +1,5 @@
+::sysinit:/etc/init.d/rcS
+::respawn:-/bin/sh
+::ctrlaltdel:/etc/init.d/reboot
+::shutdown:/bin/umount -a -r
+::shutdown:/sbin/swapoff -a

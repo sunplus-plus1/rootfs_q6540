@@ -34,8 +34,7 @@ fi
 CROSS=${CROSS%gcc}
 
 # Output
-DISKZ=disk-base-static.tgz
-#DISKZ=disk-base-dynamic.tgz
+DISKZ=disk-base/
 DISKOUT=`pwd`/disk
 
 # Busybox
@@ -45,7 +44,7 @@ BBXCFG=configs/bbx_static_defconfig
 #BBXCFG=configs/bbx_dynamic_defconfig
 
 # Check sources
-if [ ! -f $DISKZ ];then
+if [ ! -d $DISKZ ];then
 	echo "Not found base: $DISKZ"
 fi
 
@@ -56,7 +55,7 @@ fi
 
 echo "Prepare disk base"
 rm -rf $DISKOUT
-tar xzf $DISKZ
+cp -a $DISKZ $DISKOUT
 
 echo "Prepare busybox"
 rm -rf $BBX
@@ -73,7 +72,7 @@ cd -
 size $BBX/busybox
 echo "Installed ($BBXCFG)"
 
-echo "Extra copy..."
+echo "Overwrite with extra/ ..."
 if [ -d extra/ ];then
 	cp -av extra/* $DISKOUT
 fi

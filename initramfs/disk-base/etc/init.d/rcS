@@ -1,0 +1,24 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+/bin/echo "$0 starts..."
+/bin/mount -t proc none /proc
+/bin/mount -t devpts -o mode=620 none /dev/pts
+/bin/mount -t tmpfs tmpfs /dev/shm
+/bin/mount -t sysfs none /sys
+
+# mount all other filesystems (/etc/fstab)
+/bin/echo "Mounting other filesystems ..."
+/bin/mount -a
+
+rm -f /dev/rtc*
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+mdev -s
+
+if [ -f /etc/init.d/rc.extra ];then
+	echo "rc.extra [bg]"
+	/etc/init.d/rc.extra &
+fi
+
+/bin/echo "End of $0"
