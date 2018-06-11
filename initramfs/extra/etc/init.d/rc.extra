@@ -1,4 +1,8 @@
 # latch av1 stc
 devmem 0x9c0030e8 32 1 ; devmem 0x9c0030e0 32 ; devmem 0x9c0030e4 32
 
+rm -f /dev/rtc*
+echo /sbin/mdev > /proc/sys/kernel/hotplug
+mdev -s
+
 echo "extra done"
