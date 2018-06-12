@@ -3,6 +3,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 /bin/echo "$0 starts..."
+mkdir -p /proc /dev/pts /dev/shm /sys
 /bin/mount -t proc none /proc
 /bin/mount -t devpts -o mode=620 none /dev/pts
 /bin/mount -t tmpfs tmpfs /dev/shm
