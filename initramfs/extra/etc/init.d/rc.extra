@@ -5,4 +5,24 @@ if [ -d /sys/kernel/debug ];then
 	mount -t debugfs none /sys/kernel/debug
 fi
 
+if [ 0 -eq 1 ];then
+	echo "User mem test"
+	memspeed_test-O3.elf 10 4 1
+
+	echo "add lo"
+	ifconfig -a lo ; ifconfig lo up
+	iperf -s -V &
+	cmd="iperf -c ::1 -i 1 -V -m -M 1500" && echo $cmd
+	$cmd
+	cmd="iperf -c ::1 -i 1 -V -m" && echo $cmd
+	$cmd
+fi
+
+if [ 0 -eq 1 ];then
+	echo "Ramspeed test"
+	time ramspeed -b 1
+	time ramspeed -b 2
+	time ramspeed -b 3
+fi
+
 echo "extra done"
