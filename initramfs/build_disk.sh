@@ -40,8 +40,8 @@ DISKOUT=`pwd`/disk
 # Busybox
 BBX=busybox-1.24.1
 BBXZ=../busybox/$BBX.tar.bz2
-BBXCFG=configs/bbx_static_defconfig
-#BBXCFG=configs/bbx_dynamic_defconfig
+#BBXCFG=configs/bbx_static_defconfig
+BBXCFG=configs/bbx_dynamic_defconfig
 
 # Check sources
 if [ ! -d $DISKZ ];then
