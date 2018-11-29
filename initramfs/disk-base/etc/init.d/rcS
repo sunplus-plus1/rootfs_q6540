@@ -3,10 +3,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 /bin/echo "$0 starts..."
-mkdir -p /proc /dev/pts /dev/shm /sys
 /bin/mount -t proc none /proc
-/bin/mount -t devpts -o mode=620 none /dev/pts
-/bin/mount -t tmpfs tmpfs /dev/shm
 /bin/mount -t sysfs none /sys
 
 # mount all other filesystems (/etc/fstab)
@@ -16,6 +13,10 @@ mkdir -p /proc /dev/pts /dev/shm /sys
 rm -f /dev/rtc*
 echo /sbin/mdev > /proc/sys/kernel/hotplug
 mdev -s
+
+mkdir -p /dev/pts /dev/shm
+/bin/mount -t devpts -o mode=620 none /dev/pts
+/bin/mount -t tmpfs tmpfs /dev/shm
 
 if [ -f /etc/init.d/rc.extra ];then
 	echo "rc.extra [bg]"

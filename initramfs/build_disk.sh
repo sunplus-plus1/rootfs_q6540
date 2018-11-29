@@ -1,5 +1,11 @@
 #!/bin/bash
 
+UPDATE=0
+
+if [ "$1" = "update" ];then
+	UPDATE=1
+fi
+
 # Toolchain
 ARCH=arm
 CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
@@ -56,11 +62,18 @@ fi
 echo "Prepare disk base"
 rm -rf $DISKOUT
 cp -a $DISKZ $DISKOUT
+cd $DISKOUT
+mkdir -p proc sys
+cd -
 
-echo "Prepare busybox"
-rm -rf $BBX
-tar xjf $BBXZ
-cp -vf $BBXCFG $BBX/.config
+if [ $UPDATE -eq 1 ];then
+	echo "Build busybox with current config"
+else
+	echo "Build busybox with new config ($BBXCFG)"
+	rm -rf $BBX
+	tar xjf $BBXZ
+	cp -vf $BBXCFG $BBX/.config
+fi
 
 echo "Build busybox"
 echo make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install
