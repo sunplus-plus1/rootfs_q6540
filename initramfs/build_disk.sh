@@ -63,7 +63,7 @@ echo "Prepare disk base"
 rm -rf $DISKOUT
 cp -a $DISKZ $DISKOUT
 cd $DISKOUT
-mkdir -p proc sys
+mkdir -p proc sys mnt tmp var
 cd -
 
 if [ $UPDATE -eq 1 ];then
