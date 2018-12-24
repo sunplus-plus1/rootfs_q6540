@@ -59,16 +59,20 @@ if [ ! -f $BBXZ ];then
 	exit 1
 fi
 
-echo "Prepare disk base"
-rm -rf $DISKOUT
-cp -a $DISKZ $DISKOUT
-cd $DISKOUT
-mkdir -p proc sys mnt tmp var
-cd -
+if [ ! -d $DISKOUT ];then
+	UPDATE=0
+fi
 
 if [ $UPDATE -eq 1 ];then
-	echo "Build busybox with current config"
+	echo "Use current disk folder"
 else
+	echo "Prepare new disk base"
+	rm -rf $DISKOUT
+	cp -a $DISKZ $DISKOUT
+	cd $DISKOUT
+	mkdir -p proc sys mnt tmp var
+	cd -
+
 	echo "Build busybox with new config ($BBXCFG)"
 	rm -rf $BBX
 	tar xjf $BBXZ
