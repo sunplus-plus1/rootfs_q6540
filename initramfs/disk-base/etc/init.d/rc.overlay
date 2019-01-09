@@ -24,7 +24,7 @@ else
 			[ ! -d ${RW_DIR}${ov} ] && mkdir -p ${RW_DIR}${ov} ${RW_DIR}${ov}_w
 
 			if [ -d ${RW_DIR}${ov} ];then
-				mount -t overlay overlay -o lowerdir=${ov},upperdir=${RW_DIR}${ov},workdir=${RW_DIR}${ov}_w ${ov}
+				mount -t overlay overlay -o noatime,lowerdir=${ov},upperdir=${RW_DIR}${ov},workdir=${RW_DIR}${ov}_w ${ov}
 			fi
 		done
 	fi
