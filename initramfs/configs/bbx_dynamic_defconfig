@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Busybox version: 1.24.1
-# Mon Oct 29 13:08:03 2018
+# Wed Jan  9 14:48:19 2019
 #
 CONFIG_HAVE_DOT_CONFIG=y
 
@@ -507,7 +507,7 @@ CONFIG_VLOCK=y
 # Linux Ext2 FS Progs
 #
 CONFIG_CHATTR=y
-# CONFIG_FSCK is not set
+CONFIG_FSCK=y
 CONFIG_LSATTR=y
 # CONFIG_TUNE2FS is not set
 
@@ -590,7 +590,7 @@ CONFIG_FEATURE_DMESG_PRETTY=y
 # CONFIG_FLOCK is not set
 # CONFIG_FREERAMDISK is not set
 # CONFIG_FSCK_MINIX is not set
-# CONFIG_MKFS_EXT2 is not set
+CONFIG_MKFS_EXT2=y
 # CONFIG_MKFS_MINIX is not set
 # CONFIG_FEATURE_MINIX2 is not set
 # CONFIG_MKFS_REISER is not set

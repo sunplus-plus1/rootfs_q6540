@@ -17,10 +17,13 @@ mdev -s
 mkdir -p /dev/pts /dev/shm
 /bin/mount -t devpts -o mode=620 none /dev/pts
 /bin/mount -t tmpfs tmpfs /dev/shm
+/bin/mount -t tmpfs tmpfs /tmp
 
 if [ -f /etc/init.d/rc.extra ];then
 	echo "rc.extra [bg]"
 	/etc/init.d/rc.extra &
 fi
+
+/etc/init.d/rc.overlay
 
 /bin/echo "End of $0"

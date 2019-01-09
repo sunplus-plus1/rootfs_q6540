@@ -70,7 +70,7 @@ else
 	rm -rf $DISKOUT
 	cp -a $DISKZ $DISKOUT
 	cd $DISKOUT
-	mkdir -p proc sys mnt tmp var
+	mkdir -p proc sys mnt tmp var overlay
 	cd -
 
 	echo "Build busybox with new config ($BBXCFG)"

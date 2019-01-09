@@ -1,0 +1,31 @@
+OVER_LIST="/bin /etc /lib /sbin /usr /var"
+
+RW_PART=/dev/mmcblk0p8
+RW_FS=ext2
+RW_DIR=/overlay
+
+echo "Mount RW partition..."
+
+if [ ! -b $RW_PART ];then
+	echo "not available"
+else
+	mount -t $RW_FS $RW_PART $RW_DIR 2>/dev/null
+	if [ $? -ne 0 ];then
+		echo "*** Initialize partition ($RW_PART) to $RW_FS ***"
+		mkfs.ext2 $RW_PART
+		mount -t $RW_FS $RW_PART $RW_DIR
+	fi
+
+	if [ $? -ne 0 ];then
+		echo "failed to mount RW partition!"
+	else
+		for ov in $OVER_LIST ;
+		do
+			[ ! -d ${RW_DIR}${ov} ] && mkdir -p ${RW_DIR}${ov} ${RW_DIR}${ov}_w
+
+			if [ -d ${RW_DIR}${ov} ];then
+				mount -t overlay overlay -o lowerdir=${ov},upperdir=${RW_DIR}${ov},workdir=${RW_DIR}${ov}_w ${ov}
+			fi
+		done
+	fi
+fi
