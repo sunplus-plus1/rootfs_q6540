@@ -13,7 +13,7 @@ fi
 
 UPDATE=0
 
-if [ "$1" = "update" ];then
+if [ "$2" = "update" ];then
 	UPDATE=1
 fi
 
