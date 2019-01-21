@@ -1,5 +1,16 @@
 #!/bin/bash
 
+# arguments:
+# $1 : v5 or v7 (default: v7)
+# $2 : update (default: completely rebuild)
+
+# default to v7 build
+V7_BUILD=1
+
+if [ "$1" = "v5" ];then
+	V7_BUILD=0
+fi
+
 UPDATE=0
 
 if [ "$1" = "update" ];then
@@ -8,7 +19,13 @@ fi
 
 # Toolchain
 ARCH=arm
-CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
+if [ $V7_BUILD -eq 1 ];then
+	CROSS=../../../build/tools/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+	DISK_LIB=lib-v7hf
+else
+	CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
+	DISK_LIB=lib-v5
+fi
 
 function abspath() {
     # generate absolute path from relative path
@@ -69,6 +86,7 @@ else
 	echo "Prepare new disk base"
 	rm -rf $DISKOUT
 	cp -a $DISKZ $DISKOUT
+	cp -a ${DISK_LIB}/* $DISKOUT/
 	cd $DISKOUT
 	mkdir -p proc sys mnt tmp var overlay
 	cd -
