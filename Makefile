@@ -7,14 +7,14 @@ rootfs: initramfs_update
 	@./gen_root.sh
 
 initramfs:
-	@cd initramfs ; ./build_disk.sh ${rootfs_cfg} ; cd -
+	@cd initramfs ;export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg}; cd -
 
 initramfs_update:
 	@cd initramfs ; \
 	 if [ ! -d disk ];then \
-		./build_disk.sh ${rootfs_cfg} ; \
+		export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} ; \
 	 else \
-		./build_disk.sh ${rootfs_cfg} update ; \
+		export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} update ; \
 	 fi ; \
 	 cd -
 

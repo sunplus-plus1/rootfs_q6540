@@ -20,12 +20,17 @@ fi
 # Toolchain
 ARCH=arm
 if [ $V7_BUILD -eq 1 ];then
-	CROSS=../../../build/tools/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+#	CROSS=../../../build/tools/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 	DISK_LIB=lib-v7hf
 else
-	CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
+#	CROSS=../../../build/tools/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
 	DISK_LIB=lib-v5
 fi
+
+if [ -z "${CROSS}" ]; then
+  echo "CROSS=... is undefined"
+  exit 1;
+fi;
 
 function abspath() {
     # generate absolute path from relative path
