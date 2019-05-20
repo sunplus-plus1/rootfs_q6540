@@ -116,3 +116,13 @@ echo "Overwrite with extra/ ..."
 if [ -d extra/ ];then
 	cp -av extra/* $DISKOUT
 fi
+
+if [ $V7_BUILD -eq 1 ];then
+	if [ -d prebuilt/resize2fs/v7 ];then
+		cp -av prebuilt/resize2fs/v7/* $DISKOUT
+	fi
+else
+	if [ -d prebuilt/resize2fs/v5 ];then
+		cp -av prebuilt/resize2fs/v5/* $DISKOUT
+	fi
+fi
