@@ -24,6 +24,9 @@ if [ -f /etc/init.d/rc.extra ];then
 	/etc/init.d/rc.extra &
 fi
 
-/etc/init.d/rc.overlay
-
+if [ -f /etc/init.d/rc.sdcardboot ];then
+	/etc/init.d/rc.sdcardboot
+else
+	/etc/init.d/rc.overlay
+fi
 /bin/echo "End of $0"
