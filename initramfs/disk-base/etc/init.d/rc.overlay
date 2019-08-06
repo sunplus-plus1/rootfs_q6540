@@ -1,3 +1,19 @@
+if [ 1 -eq 1 ];then
+echo "******* resize2fs the mmcblk0p7 ****************"
+ROOTFS_PART=/dev/mmcblk0p7
+RESIZE=resize2fs
+if [ ! -b $ROOTFS_PART ];then
+	echo "not available"
+else
+	if [ ! -a $RESIZE ];then
+		echo "not available"
+	else
+		$RESIZE $ROOTFS_PART
+	fi
+fi
+
+else
+
 OVER_LIST="/bin /etc /lib /sbin /usr /var"
 
 RW_PART=/dev/mmcblk0p8
@@ -28,4 +44,5 @@ else
 			fi
 		done
 	fi
+fi
 fi
