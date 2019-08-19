@@ -2,9 +2,11 @@
 
 # v5 or v7
 rootfs_cfg ?= v7
+# EMMC NAND SPINOR SDCARD
+boot_from ?= EMMC
 
 rootfs: initramfs_update
-	@./gen_root.sh
+	@./gen_root.sh ${boot_from}
 
 initramfs:
 	@cd initramfs ;export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg}; cd -

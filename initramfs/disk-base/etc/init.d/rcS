@@ -27,6 +27,6 @@ fi
 if [ -f /etc/init.d/rc.sdcardboot ];then
 	/etc/init.d/rc.sdcardboot
 else
-	/etc/init.d/rc.overlay
+	/etc/init.d/rc.resizefs
 fi
 /bin/echo "End of $0"
