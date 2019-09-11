@@ -93,7 +93,7 @@ else
 	cp -a $DISKZ $DISKOUT
 	cp -a ${DISK_LIB}/* $DISKOUT/
 	cd $DISKOUT
-	mkdir -p proc sys mnt tmp var overlay
+	mkdir -p proc sys mnt tmp var
 	cd -
 
 	echo "Build busybox with new config ($BBXCFG)"
