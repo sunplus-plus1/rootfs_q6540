@@ -5,7 +5,7 @@
 OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
-if [ "$1" = "EMMC" ];then
+if [ "$1" = "EMMC" -o "$1" = "USB" ]; then
 ############################################  ext2 fs ############################################
 	echo -e  "\E[1;33m ========make ext2 fs========== \E[0m"
 	EXT2=./tools/mke2fs
