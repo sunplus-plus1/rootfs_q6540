@@ -25,26 +25,6 @@ if [ "$1" = "EMMC" ]; then
 
 	$EXT2 -d "$WORK_DIR" -j -m 5 -b 4096 $OUT_IMG $((EXT2_SIZE))M
 
-elif [ "$1" = "USB" ]; then
-############################################  ext2 fs ############################################
-	echo -e  "\E[1;33m ========make ext2 fs========== \E[0m"
-	EXT2=./tools/mke2fs
-
-	if [ ! -d $WORK_DIR ];then
-		echo "Error: $WORK_DIR doesn't exist!"
-		exit 1
-	fi
-
-	diskdir_sz=`du -sb $WORK_DIR | cut -f1`
-	echo "rootfs total size = $diskdir_sz bytes"
-	# 5% block reserved for superuser, used 10% to calculate (mke2fs -m optiton)
-	diskdir_sz=$((diskdir_sz*100/90))
-	EXT2_SIZE=$((diskdir_sz/1024/1024+1))
-	echo "rootfs created size = $EXT2_SIZE MB"
-	rm -rf $OUT_IMG
-
-	$EXT2 -d "$WORK_DIR" -m 5 -b 4096 $OUT_IMG $((EXT2_SIZE))M
-
 elif [ "$1" = "NAND" ];then
 ############################################  ubi fs ############################################
 
