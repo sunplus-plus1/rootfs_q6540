@@ -5,10 +5,10 @@
 OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
-if [ "$1" = "EMMC" ]; then
-############################################  ext2 fs ############################################
-	echo -e  "\E[1;33m ========make ext2 fs========== \E[0m"
-	EXT2=./tools/mke2fs
+if [ "$1" = "EMMC" ];then
+############################################  ext3 fs ############################################
+	echo -e  "\E[1;33m ========make ext3 fs========== \E[0m"
+	EXT3=./tools/mke2fs
 
 	if [ ! -d $WORK_DIR ];then
 		echo "Error: $WORK_DIR doesn't exist!"
@@ -17,21 +17,29 @@ if [ "$1" = "EMMC" ]; then
 
 	diskdir_sz=`du -sb $WORK_DIR | cut -f1`
 	echo "rootfs total size = $diskdir_sz bytes"
-	# 5% block reserved for superuser, used 10% to calculate (mke2fs -m optiton)
-	diskdir_sz=$((diskdir_sz*100/90))
-	EXT2_SIZE=$((diskdir_sz/1024/1024+6))
-	echo "rootfs created size = $EXT2_SIZE MB"
+
+	# Assume 40% +10MB overhead for creating ext3 fs.
+	diskdir_sz=$((diskdir_sz*14/10))
+	EXT3_SIZE=$((diskdir_sz/1024/1024+10))
 	rm -rf $OUT_IMG
 
-	$EXT2 -d "$WORK_DIR" -j -m 5 -b 4096 $OUT_IMG $((EXT2_SIZE))M
+	$EXT3 -d "$WORK_DIR" -j -b 4096 $OUT_IMG $((EXT3_SIZE))M
+
+	# Resize to 10% more than minimum.
+	resize2fs -M $OUT_IMG
+	minimum_sz=`du -sb $OUT_IMG | cut -f1`
+	minimum_sz=$((minimum_sz*11/10))
+	EXT3_SIZE=$(((minimum_sz+1023)/1024))
+	echo "rootfs created size = $EXT3_SIZE kbytes"
+	resize2fs $OUT_IMG $((EXT3_SIZE))k
 
 elif [ "$1" = "NAND" ];then
 ############################################  ubi fs ############################################
 
-#mkfs.ubifs+ubi write :Can automatically set the size of the root file system by partition size in ISP,
-#					   use the ubi cmd to write rootfs into nand in ISP,need add ubi config in uboot; used it!!!
+#mkfs.ubifs+ubi write: Can automatically set the size of the root file system by partition size in ISP,
+#                      use the ubi cmd to write rootfs into nand in ISP, need add ubi config in uboot; used it!!!
 #mkfs.ubifs+ubinize+nand write: the rootfs size is fixed in ubi.cfg that used in ubinize function. this 
-#					   can use the nand write cmd to write dat into nand ,no need do something in uboot.
+#                               can use the nand write cmd to write dat into nand, no need do something in uboot.
 	echo -e  "\E[1;33m ========make ubi fs========== \E[0m"
 	MKFS_UBIFS=./tools/mkfs.ubifs
 	UBINIZE=./tools/ubinize
@@ -93,6 +101,5 @@ else
 	fi
 
 	$MKSQFS $WORK_DIR $OUT_IMG -all-root -noappend $MKSQFS_COMPOPT
-
 fi
 
