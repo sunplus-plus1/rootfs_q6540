@@ -5,7 +5,7 @@
 OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
-if [ "$1" = "EMMC" ];then
+if [ "$1" = "EMMC" ]; then
 ############################################  ext3 fs ############################################
 	echo -e  "\E[1;33m ========make ext3 fs========== \E[0m"
 	EXT3=./tools/mke2fs
@@ -33,7 +33,10 @@ if [ "$1" = "EMMC" ];then
 	echo "rootfs created size = $EXT3_SIZE kbytes"
 	resize2fs $OUT_IMG $((EXT3_SIZE))k
 
-elif [ "$1" = "NAND" ];then
+elif [ "$1" = "SDCARD" ]; then
+	echo "Skip generating rootfs.img for SDCARD!"
+
+elif [ "$1" = "NAND" ]; then
 ############################################  ubi fs ############################################
 
 #mkfs.ubifs+ubi write: Can automatically set the size of the root file system by partition size in ISP,
