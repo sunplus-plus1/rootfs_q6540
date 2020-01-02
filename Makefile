@@ -9,16 +9,16 @@ rootfs: initramfs_update
 	@./gen_root.sh ${boot_from}
 
 initramfs:
-	@cd initramfs ;export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg}; cd -
+	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg}; cd -
 
 initramfs_update:
 	@cd initramfs ; \
 	 if [ ! -d disk ];then \
-		export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} ; \
+		export ARCH=$(ARCH); export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} ; \
 	 else \
-		export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} update ; \
+		export ARCH=$(ARCH); export CROSS=$(CROSS); ./build_disk.sh ${rootfs_cfg} update ; \
 	 fi ; \
 	 cd -
 
 clean:
-	@rm -rf rootfs.img initramfs/disk/ initramfs/busybox-1.24.1/
+	@rm -rf rootfs.img initramfs/disk/ initramfs/busybox-1.31.1/

@@ -18,8 +18,10 @@ if [ "$2" = "update" ];then
 fi
 
 # Toolchain
-ARCH=arm
-if [ $V7_BUILD -eq 1 ];then
+#ARCH=arm
+if [ "$ARCH" = "riscv" ];then
+  DISK_LIB=lib-riscv
+elif [ $V7_BUILD -eq 1 ];then
 #	CROSS=../../../crossgcc/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 	DISK_LIB=lib-v7hf
 else
@@ -66,7 +68,7 @@ DISKZ=disk-base/
 DISKOUT=`pwd`/disk
 
 # Busybox
-BBX=busybox-1.24.1
+BBX=busybox-1.31.1
 BBXZ=../busybox/$BBX.tar.bz2
 #BBXCFG=configs/bbx_static_defconfig
 BBXCFG=configs/bbx_dynamic_defconfig
@@ -117,7 +119,11 @@ if [ -d extra/ ];then
 	cp -av extra/* $DISKOUT
 fi
 
-if [ $V7_BUILD -eq 1 ];then
+if [ "$ARCH" = "riscv" ];then
+  if [ -d prebuilt/riscv ];then
+    cp -av prebuilt/riscv/* $DISKOUT
+  fi
+elif [ $V7_BUILD -eq 1 ];then
 	if [ -d prebuilt/resize2fs/v7 ];then
 		cp -av prebuilt/resize2fs/v7/* $DISKOUT
 	fi
