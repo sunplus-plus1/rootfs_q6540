@@ -1,5 +1,6 @@
 .PHONY: rootfs initramfs initramfs_update clean
 
+ARCH ?= arm
 # v5 or v7
 rootfs_cfg ?= v7
 # EMMC NAND SPINOR SDCARD
