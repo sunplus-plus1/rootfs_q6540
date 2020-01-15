@@ -69,7 +69,7 @@ DISKOUT=`pwd`/disk
 
 # Busybox
 BBX=busybox-1.31.1
-BBXZ=../busybox/$BBX.tar.bz2
+BBXZ=../busybox/$BBX.tar.xz
 #BBXCFG=configs/bbx_static_defconfig
 BBXCFG=configs/bbx_dynamic_defconfig
 
@@ -100,7 +100,7 @@ else
 
 	echo "Build busybox with new config ($BBXCFG)"
 	rm -rf $BBX
-	tar xjf $BBXZ
+	tar xf $BBXZ
 	cp -vf $BBXCFG $BBX/.config
 fi
 

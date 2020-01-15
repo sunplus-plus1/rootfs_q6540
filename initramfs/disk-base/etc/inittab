@@ -1,5 +1,5 @@
 ::sysinit:/etc/init.d/rcS
-::respawn:-/bin/sh
+::respawn:/sbin/getty -nL  console 0 vt100 # GENERIC_SERIAL
 ::ctrlaltdel:/etc/init.d/reboot
 ::shutdown:/bin/umount -a -r
 ::shutdown:/sbin/swapoff -a
