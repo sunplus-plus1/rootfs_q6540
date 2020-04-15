@@ -1,8 +1,6 @@
-ROOTFS_PART=/dev/mmcblk0p8
+ROOTFS_PART=/dev/mmcblk0p7
 RESIZE=/sbin/resize2fs
-if [ ! -b $ROOTFS_PART ];then
-	echo "$ROOTFS_PART is not available!"
-else
+if [ -b $ROOTFS_PART ];then
 	echo "******* resize2fs ${ROOTFS_PART} ****************"
 	if [ ! -x $RESIZE ];then
 		echo "$RESIZE is not available!"
