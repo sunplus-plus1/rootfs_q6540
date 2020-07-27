@@ -24,4 +24,3 @@ nod /dev/psaux 0666 0 0 c 10 1
 nod /dev/full 0666 0 0 c 1 7
 nod /dev/loop0 0666 0 0 b 7 0
 nod /dev/loop1 0666 0 0 b 7 1
-slink /lib64 lib 755 0 0

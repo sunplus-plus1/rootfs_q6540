@@ -120,6 +120,7 @@ if [ -d extra/ ];then
 fi
 
 if [ "$ARCH" = "riscv" ];then
+	ln -sf lib $DISKOUT/lib64
   if [ -d prebuilt/riscv ];then
     cp -av prebuilt/riscv/* $DISKOUT
   fi
