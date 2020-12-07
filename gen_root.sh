@@ -6,9 +6,10 @@ OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
 if [ "$1" = "EMMC" ]; then
-############################################  ext3 fs ############################################
-	echo -e  "\E[1;33m ========make ext3 fs========== \E[0m"
-	EXT3=./tools/mke2fs
+############################################  ext4 fs ############################################
+	echo -e  "\E[1;33m ========make ext4 fs========== \E[0m"
+	MKFS=./tools/mke2fs
+	RESIZE=./tools/resize2fs
 
 	if [ ! -d $WORK_DIR ]; then
 		echo "Error: $WORK_DIR doesn't exist!"
@@ -18,20 +19,17 @@ if [ "$1" = "EMMC" ]; then
 	diskdir_sz=`du -sb $WORK_DIR | cut -f1`
 	echo "rootfs total size = $diskdir_sz bytes"
 
-	# Assume 40% +10MB overhead for creating ext3 fs.
+	# Assume 40% +20MB overhead for creating ext4 fs.
 	diskdir_sz=$((diskdir_sz*14/10))
-	EXT3_SIZE=$((diskdir_sz/1024/1024+10))
+	EXT_SIZE=$((diskdir_sz/1024/1024+20))
 	rm -rf $OUT_IMG
 
-	$EXT3 -d "$WORK_DIR" -j -b 4096 $OUT_IMG $((EXT3_SIZE))M
+	$MKFS -t ext4 -b 4096 -d "$WORK_DIR" $OUT_IMG $((EXT_SIZE))M
 
 	# Resize to 10% more than minimum.
-	resize2fs -M $OUT_IMG
-	minimum_sz=`du -sb $OUT_IMG | cut -f1`
-	minimum_sz=$((minimum_sz*11/10))
-	EXT3_SIZE=$(((minimum_sz+1023)/1024))
-	echo "rootfs created size = $EXT3_SIZE kbytes"
-	resize2fs $OUT_IMG $((EXT3_SIZE))k
+	minimum_sz=`$RESIZE -P $OUT_IMG | cut -d: -f2`
+	minimum_sz=$((minimum_sz*11/10+1))
+	$RESIZE $OUT_IMG $minimum_sz
 
 elif [ "$1" = "SDCARD" ]; then
 	echo "Skip generating rootfs.img for SDCARD!"
