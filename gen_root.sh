@@ -93,6 +93,9 @@ elif [ "$1" = "NAND" ]; then
 elif [ "$1" = "SPINOR" ]; then
 	echo "Skip generating rootfs.img for SPINOR!"
 
+elif [ "$1" = "USB" ]; then
+	echo "Skip generating rootfs.img for USB!"
+
 elif [ "$1" = "NOR_JFFS2" ]; then
 	echo "Skip generating rootfs.img for NOR_JFFS2!"
 
