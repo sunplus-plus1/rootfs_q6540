@@ -1,6 +1,6 @@
 ::sysinit:/etc/init.d/rcS
-# ::respawn:/sbin/getty -nL  console 0 vt100 # GENERIC_SERIAL
-::respawn:/sbin/getty -nL 115200 ttyS0
+::respawn:/sbin/getty -nL  console 0 vt100 # GENERIC_SERIAL
+# ::respawn:/sbin/getty -nL 115200 ttyS0
 tty1::respawn:/sbin/getty 9600 tty1
 tty2::respawn:/sbin/getty 9600 tty2
 tty3::respawn:/sbin/getty 9600 tty3
