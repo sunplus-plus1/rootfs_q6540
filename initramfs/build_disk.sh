@@ -21,6 +21,8 @@ fi
 #ARCH=arm
 if [ "$ARCH" = "riscv" ];then
   DISK_LIB=lib-riscv
+elif [ "$ARCH" = "arm64" ]; then
+	DISK_LIB=lib-arm64
 elif [ $V7_BUILD -eq 1 ];then
 #	CROSS=../../../crossgcc/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 	DISK_LIB=lib-v7hf
