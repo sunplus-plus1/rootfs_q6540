@@ -22,7 +22,7 @@ fi
 if [ "$ARCH" = "riscv" ];then
   DISK_LIB=lib-riscv
 elif [ "$ARCH" = "arm64" ]; then
-	DISK_LIB=lib-arm64
+	DISK_LIB="lib-v7hf lib-arm64"
 elif [ $V7_BUILD -eq 1 ];then
 #	CROSS=../../../crossgcc/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
 	DISK_LIB=lib-v7hf
@@ -95,7 +95,7 @@ else
 	echo "Prepare new disk base"
 	rm -rf $DISKOUT
 	cp -a $DISKZ $DISKOUT
-	cp -a ${DISK_LIB}/* $DISKOUT/
+	for d in ${DISK_LIB}; do cp -a $d/* $DISKOUT/; done
 	cd $DISKOUT
 	mkdir -p proc sys mnt tmp var
 	cd -
