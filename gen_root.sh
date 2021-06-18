@@ -8,7 +8,7 @@ WORK_DIR=./initramfs/disk
 if [ "$1" = "EMMC" ]; then
 ############################################  ext4 fs ############################################
 	echo -e  "\E[1;33m ========make ext4 fs========== \E[0m"
-	MKFS=./tools/mke2fs
+	MKFS="fakeroot -- mke2fs"
 	RESIZE=./tools/resize2fs
 
 	if [ ! -d $WORK_DIR ]; then
@@ -42,7 +42,7 @@ elif [ "$1" = "NAND" ]; then
 #mkfs.ubifs+ubinize+nand write: the rootfs size is fixed in ubi.cfg that used in ubinize function. this
 #                               can use the nand write cmd to write dat into nand, no need do something in uboot.
 	echo -e  "\E[1;33m ========make ubi fs========== \E[0m"
-	MKFS_UBIFS=./tools/mkfs.ubifs
+	MKFS_UBIFS="fakeroot -- mkfs.ubifs"
 	UBINIZE=./tools/ubinize
 	UBI_CFG=./ubi.cfg
 
@@ -57,10 +57,6 @@ elif [ "$1" = "NAND" ]; then
 		exit 1
 	fi
 
-	if [ ! -x $MKFS_UBIFS ]; then
-		echo "Error: $MKFS_UBIFS doesn't exist!"
-		exit 1
-	fi
 	$MKFS_UBIFS -r $WORK_DIR -m $NAND_PAGESIZE -e $(($NAND_LOGIC_REASE_SIZE)) -c $MAX_ERASE_BLK_CNT -F -o $OUT_IMG
 
 	if false; then #mkfs.ubifs+ubinize  not used
