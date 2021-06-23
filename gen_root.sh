@@ -91,6 +91,8 @@ elif [ "$1" = "SPINOR" ]; then
 
 	# Due to limit size of SPI-NOR flash, remove firmware file /lib/firmware/ethosn.bin'.
 	rm -f initramfs/disk/lib/firmware/ethosn.bin
+	rm -f initramfs/disk/lib64/libEthosNDriver.so
+	rm -f initramfs/disk/lib64/libEthosNSupport.so
 
 elif [ "$1" = "USB" ]; then
 	echo "Skip generating rootfs.img for USB!"
@@ -100,7 +102,9 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 
 	# Due to limit size of SPI-NOR flash, remove firmware file '/lib/firmware/ethosn.bin'.
 	rm -f initramfs/disk/lib/firmware/ethosn.bin
-
+	rm -f initramfs/disk/lib64/libEthosNDriver.so
+	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	
 else
 #####################################  squash fs ############################################
 	echo -e  "\E[1;33m ========make squash fs========== \E[0m"
