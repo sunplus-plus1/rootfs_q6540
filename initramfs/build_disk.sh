@@ -5,6 +5,31 @@
 # $2 : update (default: completely rebuild)
 
 # default to v7 build
+
+# Output
+DISKZ=disk-base/
+DISKOUT=`pwd`/disk
+
+if [ "${ROOTFS_CONTENT}" = "FULL" ];then
+	tar_rootfs=0
+	if [ ! -d ${DISKOUT} ];then
+		tar_rootfs=1
+	elif [ -f ${DISKOUT}/init ];then
+		rm -rf ${DISKOUT}
+		tar_rootfs=1
+	fi
+
+	if [ ${tar_rootfs} -eq 1 ];then
+		tar jxvf rootfs.tar.bz2
+	fi
+
+	exit 0
+else
+	if [ ! -f ${DISKOUT}/init ];then
+		rm -rf ${DISKOUT}
+	fi
+fi
+
 V7_BUILD=1
 
 if [ "$1" = "v5" ];then
@@ -64,10 +89,6 @@ if [ $? -ne 0 ];then
 	exit 1
 fi
 CROSS=${CROSS%gcc}
-
-# Output
-DISKZ=disk-base/
-DISKOUT=`pwd`/disk
 
 # Busybox
 BBX=busybox-1.31.1
