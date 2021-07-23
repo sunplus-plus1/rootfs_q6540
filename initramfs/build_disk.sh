@@ -146,6 +146,10 @@ if [ "$ARCH" = "riscv" ];then
   if [ -d prebuilt/riscv ];then
     cp -av prebuilt/riscv/* $DISKOUT
   fi
+if [ "$ARCH" = "arm64" ];then
+	if [ -d prebuilt/arm64 ];then
+		cp -av prebuild/arm64/* $DISKOUT
+	fi
 elif [ $V7_BUILD -eq 1 ];then
 	if [ -d prebuilt/resize2fs/v7 ];then
 		cp -av prebuilt/resize2fs/v7/* $DISKOUT
