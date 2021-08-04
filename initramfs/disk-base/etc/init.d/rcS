@@ -18,6 +18,7 @@ mkdir -p /dev/pts /dev/shm
 /bin/mount -t devpts -o mode=620 none /dev/pts
 /bin/mount -t tmpfs tmpfs /dev/shm
 /bin/mount -t tmpfs tmpfs /tmp
+/bin/mount -t devtmpfs -o mode=0755 none /dev
 
 if [ -f /etc/init.d/rc.extra ];then
 	echo "rc.extra [bg]"

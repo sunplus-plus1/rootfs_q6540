@@ -118,7 +118,7 @@ else
 	cp -a $DISKZ $DISKOUT
 	for d in ${DISK_LIB}; do cp -a $d/* $DISKOUT/; done
 	cd $DISKOUT
-	mkdir -p proc sys mnt tmp var
+	mkdir -p proc sys mnt tmp var run
 	cd -
 
 	echo "Build busybox with new config ($BBXCFG)"
