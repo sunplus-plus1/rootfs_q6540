@@ -21,6 +21,7 @@ if [ "${ROOTFS_CONTENT}" = "FULL" ];then
 
 	if [ ${tar_rootfs} -eq 1 ];then
 		tar jxvf rootfs.tar.bz2
+		cp -R ${DISKZ}lib/firmware/ ${DISKOUT}/lib
 	fi
 
 	exit 0
