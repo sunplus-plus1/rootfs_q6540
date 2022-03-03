@@ -34,7 +34,7 @@ if [ "$1" = "EMMC" ]; then
 elif [ "$1" = "SDCARD" ]; then
 	echo "Skip generating rootfs.img for SDCARD!"
 
-elif [ "$1" = "NAND" ]; then
+elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
 ############################################  ubi fs ############################################
 
 #mkfs.ubifs+ubi write: Can automatically set the size of the root file system by partition size in ISP,
@@ -104,7 +104,7 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 	rm -f initramfs/disk/lib/firmware/ethosn.bin
 	rm -f initramfs/disk/lib64/libEthosNDriver.so
 	rm -f initramfs/disk/lib64/libEthosNSupport.so
-	
+
 else
 #####################################  squash fs ############################################
 	echo -e  "\E[1;33m ========make squash fs========== \E[0m"
