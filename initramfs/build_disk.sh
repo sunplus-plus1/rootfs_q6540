@@ -10,82 +10,79 @@
 DISKZ=disk-base/
 DISKOUT=`pwd`/disk
 
-if [ "${ROOTFS_CONTENT}" = "FULL" ];then
+if [ "${ROOTFS_CONTENT}" = "FULL" ]; then
 	tar_rootfs=0
-	if [ ! -d ${DISKOUT} ];then
+	if [ ! -d ${DISKOUT} ]; then
 		tar_rootfs=1
-	elif [ -f ${DISKOUT}/init ];then
+	elif [ -f ${DISKOUT}/init ]; then
 		rm -rf ${DISKOUT}
 		tar_rootfs=1
 	fi
 
-	if [ ${tar_rootfs} -eq 1 ];then
+	if [ ${tar_rootfs} -eq 1 ]; then
 		tar jxvf rootfs.tar.bz2
 		cp -R ${DISKZ}lib/firmware/ ${DISKOUT}/lib
 	fi
 
 	exit 0
 else
-	if [ ! -f ${DISKOUT}/init ];then
+	if [ ! -f ${DISKOUT}/init ]; then
 		rm -rf ${DISKOUT}
 	fi
 fi
 
 V7_BUILD=1
 
-if [ "$1" = "v5" ];then
+if [ "$1" = "v5" ]; then
 	V7_BUILD=0
 fi
 
 UPDATE=0
 
-if [ "$2" = "update" ];then
+if [ "$2" = "update" ]; then
 	UPDATE=1
 fi
 
 # Toolchain
-#ARCH=arm
-if [ "$ARCH" = "riscv" ];then
-  DISK_LIB=lib-riscv
+if [ "$ARCH" = "riscv" ]; then
+	DISK_LIB=lib-riscv
 elif [ "$ARCH" = "arm64" ]; then
 	DISK_LIB="lib-v7hf lib-arm64"
-elif [ $V7_BUILD -eq 1 ];then
-#	CROSS=../../../crossgcc/arm-linux-gnueabihf/bin/arm-linux-gnueabihf-
+elif [ $V7_BUILD -eq 1 ]; then
 	DISK_LIB=lib-v7hf
 else
-#	CROSS=../../../crossgcc/armv5-eabi--glibc--stable/bin/armv5-glibc-linux-
 	DISK_LIB=lib-v5
 fi
 
 if [ -z "${CROSS}" ]; then
-  echo "CROSS=... is undefined"
-  exit 1;
+	echo "CROSS=... is undefined"
+	exit 1;
 fi;
 
 function abspath() {
-    # generate absolute path from relative path
-    # $1     : relative filename
-    # return : absolute path
-    if [ -d "$1" ]; then
-        # dir
-        (cd "$1"; pwd)
-    elif [ -f "$1" ]; then
-        # file
-        if [[ $1 = /* ]]; then
-            echo "$1"
-        elif [[ $1 == */* ]]; then
-            echo "$(cd "${1%/*}"; pwd)/${1##*/}"
-        else
-            echo "$(pwd)/$1"
-        fi
-    fi
+	# generate absolute path from relative path
+	# $1     : relative filename
+	# return : absolute path
+	if [ -d "$1" ]; then
+		# dir
+		(cd "$1"; pwd)
+	elif [ -f "$1" ]; then
+		# file
+		if [[ $1 = /* ]]; then
+			echo "$1"
+		elif [[ $1 == */* ]]; then
+			echo "$(cd "${1%/*}"; pwd)/${1##*/}"
+		else
+			echo "$(pwd)/$1"
+		fi
+	fi
 }
 
 # sub builds need absolute path
 CROSS=`abspath ${CROSS}gcc`
 echo $CROSS
 ${CROSS} -v 2>/dev/null
-if [ $? -ne 0 ];then
+if [ $? -ne 0 ]; then
 	echo "Not found gcc : $CROSS"
 	exit 1
 fi
@@ -98,20 +95,20 @@ BBXZ=../busybox/$BBX.tar.xz
 BBXCFG=configs/bbx_dynamic_defconfig
 
 # Check sources
-if [ ! -d $DISKZ ];then
+if [ ! -d $DISKZ ]; then
 	echo "Not found base: $DISKZ"
 fi
 
-if [ ! -f $BBXZ ];then
+if [ ! -f $BBXZ ]; then
 	echo "Not found busybox: $BBXZ"
 	exit 1
 fi
 
-if [ ! -d $DISKOUT ];then
+if [ ! -d $DISKOUT ]; then
 	UPDATE=0
 fi
 
-if [ $UPDATE -eq 1 ];then
+if [ $UPDATE -eq 1 ]; then
 	echo "Use current disk folder"
 else
 	echo "Prepare new disk base"
@@ -139,24 +136,25 @@ size $BBX/busybox
 echo "Installed ($BBXCFG)"
 
 echo "Overwrite with extra/ ..."
-if [ -d extra/ ];then
+if [ -d extra/ ]; then
 	cp -av extra/* $DISKOUT
 fi
 
-if [ "$ARCH" = "riscv" ];then
-  if [ -d prebuilt/riscv ];then
-    cp -av prebuilt/riscv/* $DISKOUT
-  fi
-elif [ "$ARCH" = "arm64" ];then
-	if [ -d prebuilt/arm64 ];then
-		cp -av prebuilt/arm64/* $DISKOUT
+if [ "$ARCH" = "riscv" ]; then
+	if [ -d prebuilt/riscv ]; then
+		cp -av prebuilt/riscv/* $DISKOUT
 	fi
-elif [ $V7_BUILD -eq 1 ];then
-	if [ -d prebuilt/resize2fs/v7 ];then
+elif [ "$ARCH" = "arm64" ]; then
+	if [ -d prebuilt/arm64 ]; then
+		cp -av prebuilt/arm64/* $DISKOUT
+		cp -av prebuilt/resize2fs/v8/* $DISKOUT
+	fi
+elif [ $V7_BUILD -eq 1 ]; then
+	if [ -d prebuilt/resize2fs/v7 ]; then
 		cp -av prebuilt/resize2fs/v7/* $DISKOUT
 	fi
 else
-	if [ -d prebuilt/resize2fs/v5 ];then
+	if [ -d prebuilt/resize2fs/v5 ]; then
 		cp -av prebuilt/resize2fs/v5/* $DISKOUT
 	fi
 fi
