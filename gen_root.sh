@@ -93,6 +93,7 @@ elif [ "$1" = "SPINOR" ]; then
 	rm -f initramfs/disk/lib/firmware/ethosn.bin
 	rm -f initramfs/disk/lib64/libEthosNDriver.so
 	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	rm -f initramfs/disk/bin/7za
 
 elif [ "$1" = "USB" ]; then
 	echo "Skip generating rootfs.img for USB!"
@@ -104,6 +105,7 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 	rm -f initramfs/disk/lib/firmware/ethosn.bin
 	rm -f initramfs/disk/lib64/libEthosNDriver.so
 	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	rm -f initramfs/disk/bin/7za
 
 else
 #####################################  squash fs ############################################
