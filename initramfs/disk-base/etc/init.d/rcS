@@ -30,6 +30,7 @@ else
 	/etc/init.d/rc.resizefs
 fi
 
+if [ -d /sys/class/remoteproc/remoteproc0 ];then
 if [ -f /lib/firmware/cm4.img ];then
 	echo "Boot cm4.img by remoteproc"
 	echo cm4.img > /sys/class/remoteproc/remoteproc0/firmware
@@ -40,6 +41,7 @@ if [ -f /lib/firmware/a926.img ];then
 	echo "Boot a926.img by remoteproc"
 	echo a926.img > /sys/class/remoteproc/remoteproc0/firmware
 	echo start > /sys/class/remoteproc/remoteproc0/state
+fi
 fi
 
 /bin/echo "End of $0"
