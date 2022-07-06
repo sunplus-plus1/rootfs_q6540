@@ -25,11 +25,11 @@ if [ -f /etc/init.d/rc.extra ];then
 	/etc/init.d/rc.extra &
 fi
 
-if [ -f /etc/init.d/rc.sdcardboot ];then
-	/etc/init.d/rc.sdcardboot
-else
-	/etc/init.d/rc.resizefs
-fi
+#if [ -f /etc/init.d/rc.sdcardboot ];then
+#	/etc/init.d/rc.sdcardboot
+#else
+#	/etc/init.d/rc.resizefs
+#fi
 /bin/echo "End of $0"
 
 if [ -f /lib/firmware/cm4.img ];then
