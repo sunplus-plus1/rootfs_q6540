@@ -81,7 +81,7 @@ function abspath() {
 # sub builds need absolute path
 CROSS=`abspath ${CROSS}gcc`
 echo $CROSS
-${CROSS} -v 2>/dev/null
+${CROSS} --version 2>/dev/null
 if [ $? -ne 0 ]; then
 	echo "Not found gcc : $CROSS"
 	exit 1
