@@ -9,19 +9,36 @@
 # Output
 DISKZ=disk-base/
 DISKOUT=`pwd`/disk
+DISKLIB=${DISKOUT}/lib
+DISKLIB64=${DISKOUT}/lib64
 
 if [ "${ROOTFS_CONTENT}" = "FULL" ]; then
 	tar_rootfs=0
+
 	if [ ! -d ${DISKOUT} ]; then
 		tar_rootfs=1
 	elif [ -f ${DISKOUT}/init ]; then
 		rm -rf ${DISKOUT}
 		tar_rootfs=1
+	elif [ "$ARCH" = "arm64" ] && [ ! -f ${DISKLIB}/ld-linux-aarch64.so.1 ]; then
+		rm -rf ${DISKOUT}
+		tar_rootfs=1
+	elif [ "$ARCH" != "arm64" ] && [ -f ${DISKLIB}/ld-linux-aarch64.so.1 ]; then
+		rm -rf ${DISKLIB64}
+		rm ${DISKLIB}/ld-linux-aarch64.so.1
+		exit 0
 	fi
 
 	if [ ${tar_rootfs} -eq 1 ]; then
-		tar jxvf rootfs.tar.bz2
-		cp -R ${DISKZ}lib/firmware/ ${DISKOUT}/lib
+		tar jxvf rootfs.tar.bz2 &>/dev/null
+		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+	fi
+
+	if [ "$ARCH" != "arm64" ]; then
+		if [ -d ${DISKLIB64} ]; then
+			rm -rf ${DISKLIB64}
+			rm ${DISKLIB}/ld-linux-aarch64.so.1
+		fi
 	fi
 
 	exit 0
