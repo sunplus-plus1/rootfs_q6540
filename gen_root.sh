@@ -59,7 +59,7 @@ elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
 
 	$MKFS_UBIFS -r $WORK_DIR -m $NAND_PAGESIZE -e $(($NAND_LOGIC_REASE_SIZE)) -c $MAX_ERASE_BLK_CNT -F -o $OUT_IMG
 
-	if false; then #mkfs.ubifs+ubinize  not used
+	if [ "$1" = "PNAND" ]; then #mkfs.ubifs+ubinize is used to paranand boot in zebu
 
 		NAND_ROOTFS_SIZE=100MiB
 		NAND_BLK_SIZE=$NAND_BLK_PAGESIZE*$NAND_PAGESIZE  # size = blockcnt*2048
