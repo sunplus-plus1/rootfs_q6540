@@ -16,6 +16,7 @@ if [ "$1" = "EMMC" ]; then
 		exit 1
 	fi
 
+	cp -av wifi_fw/* $WORK_DIR
 	diskdir_sz=`du -sb $WORK_DIR | cut -f1`
 	echo "rootfs total size = $diskdir_sz bytes"
 
@@ -32,6 +33,7 @@ if [ "$1" = "EMMC" ]; then
 	$RESIZE $OUT_IMG $minimum_sz
 
 elif [ "$1" = "SDCARD" ]; then
+	cp -av wifi_fw/* $WORK_DIR
 	echo "Skip generating rootfs.img for SDCARD!"
 
 elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
