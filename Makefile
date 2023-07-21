@@ -7,7 +7,7 @@ rootfs_cfg ?= v7
 boot_from ?= EMMC
 
 rootfs: initramfs_update
-	@./gen_root.sh ${boot_from}
+	@./gen_root.sh ${boot_from} ${PNAND_FLASH}
 
 initramfs:
 	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); ./build_disk.sh ${rootfs_cfg}; cd -

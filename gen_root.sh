@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # arguments: create different rootfs by boot mode
-# $1 : NAND EMMC SDCARD SPINOR NOR_JFFS2
+# $1 : NAND EMMC SDCARD SPINOR NOR_JFFS2 PNAND
+# $2 : PNAND FLASH SELECTION
 OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
@@ -52,15 +53,13 @@ elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
 	MAX_ERASE_BLK_CNT=2030    #nand size 1G:1020 2G:2030
 	NAND_PAGESIZE=2048
 	if [ "$1" = "PNAND" ]; then
-#		GD9AU4G
-		MAX_ERASE_BLK_CNT=4060
-		NAND_PAGESIZE=2048
-#		GD9FU4G
-#		MAX_ERASE_BLK_CNT=2030
-#		NAND_PAGESIZE=4096
-#		K9GBG08
-#		MAX_ERASE_BLK_CNT=4060
-#		NAND_PAGESIZE=8192
+		if [ "$2" = 1 ]; then
+			MAX_ERASE_BLK_CNT=4060
+			NAND_PAGESIZE=2048
+		elif [ "$2" = 2 ]; then
+			MAX_ERASE_BLK_CNT=2030
+			NAND_PAGESIZE=4096
+		fi
 	fi
 	NAND_BLK_PAGESIZE=64
 	NAND_LOGIC_REASE_SIZE=$(($NAND_BLK_PAGESIZE-2))*$NAND_PAGESIZE  # size = (blockcnt-2)*2048
