@@ -53,12 +53,18 @@ elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
 	MAX_ERASE_BLK_CNT=2030    #nand size 1G:1020 2G:2030
 	NAND_PAGESIZE=2048
 	if [ "$1" = "PNAND" ]; then
-		if [ "$2" = 1 ]; then
+		if [ "$2" = 1 ]; then	#GD9AU4G8F3A 512MiB 3.3V 8-bit 2K
 			MAX_ERASE_BLK_CNT=4060
 			NAND_PAGESIZE=2048
-		elif [ "$2" = 2 ]; then
+		elif [ "$2" = 2 ]; then	#GD9FU4G8F4B 512MiB 3.3V 8-bit 4K
 			MAX_ERASE_BLK_CNT=2030
 			NAND_PAGESIZE=4096
+		elif [ "$2" = 3 ]; then	#GD9FS2G8F2A 256MiB 1.8V 8-bit 2K
+			MAX_ERASE_BLK_CNT=2030
+			NAND_PAGESIZE=2048
+		elif [ "$2" = 4 ]; then	#W29N08GZSIBA 1GMiB 1.8V 8-bit 2K
+			MAX_ERASE_BLK_CNT=8120
+			NAND_PAGESIZE=2048
 		fi
 	fi
 	NAND_BLK_PAGESIZE=64
