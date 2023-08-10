@@ -12,6 +12,11 @@ DISKOUT=`pwd`/disk
 DISKLIB=${DISKOUT}/lib
 DISKLIB64=${DISKOUT}/lib64
 
+V7_BUILD=1
+if [ "$1" = "v5" ]; then
+	V7_BUILD=0
+fi
+
 if [ "${ROOTFS_CONTENT}" = "FULL" ]; then
 	tar_rootfs=0
 
@@ -39,19 +44,24 @@ if [ "${ROOTFS_CONTENT}" = "FULL" ]; then
 			rm -rf ${DISKLIB64}
 			rm ${DISKLIB}/ld-linux-aarch64.so.1
 		fi
+		if [ $V7_BUILD -eq 1 ]; then
+			if [ -d prebuilt/resize2fs/v7 ]; then
+				cp -av prebuilt/resize2fs/v7/* $DISKOUT
+			fi
+		else
+			if [ -d prebuilt/resize2fs/v5 ]; then
+				cp -av prebuilt/resize2fs/v5/* $DISKOUT
+			fi
+		fi
+	else
+		cp -av prebuilt/resize2fs/v8/* $DISKOUT
 	fi
-
+	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	exit 0
 else
 	if [ ! -f ${DISKOUT}/init ]; then
 		rm -rf ${DISKOUT}
 	fi
-fi
-
-V7_BUILD=1
-
-if [ "$1" = "v5" ]; then
-	V7_BUILD=0
 fi
 
 UPDATE=0
