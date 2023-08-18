@@ -37,6 +37,9 @@ if [ "${ROOTFS_CONTENT}" = "FULL" ]; then
 	if [ ${tar_rootfs} -eq 1 ]; then
 		tar jxvf rootfs.tar.bz2 &>/dev/null
 		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+		if [ "$ARCH" = "arm64" ]; then
+			cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
+		fi
 	fi
 
 	if [ "$ARCH" != "arm64" ]; then
