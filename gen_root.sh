@@ -49,16 +49,13 @@ elif [ "$1" = "NAND" -o "$1" = "PNAND" ]; then
 	UBINIZE=./tools/ubinize
 	UBI_CFG=./ubi.cfg
 
-	####modify this for different nand size####
-	MAX_ERASE_BLK_CNT=2030    #nand size 1G:1020 2G:2030
-	NAND_PAGESIZE=2048
-	NAND_BLK_PAGESIZE=64
-	if [ "$1" = "PNAND" ]; then
-		NAND_PAGESIZE=$(($3*1024))
-		NAND_BLK_PAGESIZE=$4
-		MAX_ERASE_BLK_CNT=$((($2*1024)/($3*$4)/2048*2030))
-		#echo "$NAND_PAGESIZE $NAND_BLK_PAGESIZE $MAX_ERASE_BLK_CNT"
-	fi
+	NAND_PAGESIZE=$(($3*1024))
+	NAND_BLK_PAGESIZE=$4
+	MAX_ERASE_BLK_CNT=$((($2*1024)/($3*$4)/1024*1015))
+	echo " NAND_PAGESIZE=$NAND_PAGESIZE"
+	echo " NAND_BLK_PAGESIZE=$NAND_BLK_PAGESIZE"
+	echo " MAX_ERASE_BLK_CNT=$MAX_ERASE_BLK_CNT"
+
 	NAND_LOGIC_REASE_SIZE=$(($NAND_BLK_PAGESIZE-2))*$NAND_PAGESIZE  # size = (blockcnt-2)*2048
 
 	if [ ! -d $WORK_DIR ]; then
