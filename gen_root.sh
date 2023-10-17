@@ -2,7 +2,9 @@
 
 # arguments: create different rootfs by boot mode
 # $1 : NAND EMMC SDCARD SPINOR NOR_JFFS2 PNAND
-# $2 : PNAND FLASH SELECTION
+# $2 : FLASH_SIZE (Size of SPI-NOR, SPI-NAND, 8-bit NAND and eMMC)
+# $3 : NAND_PAGE_SIZE
+# $4 : NAND_PAGE_CNT
 OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
