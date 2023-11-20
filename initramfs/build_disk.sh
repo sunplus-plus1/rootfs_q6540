@@ -64,7 +64,7 @@ echo '
 # ADD REMOTEPROC
 if [ -d /sys/class/remoteproc/remoteproc0 ]; then
   if [ -f /lib/firmware/firmware ]; then
-       echo "Boot cm4/arm926 firmware by remoteproc"
+       echo "Boot CM4 firmware by remoteproc"
        echo firmware > /sys/class/remoteproc/remoteproc0/firmware
        echo start > /sys/class/remoteproc/remoteproc0/state
   fi
