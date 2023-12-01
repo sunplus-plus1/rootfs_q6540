@@ -73,6 +73,37 @@ fi' >> ${DISKOUT}/etc/profile
 	fi
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	exit 0
+elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
+	if [ "$ARCH" != "arm64" ]; then
+		exit 1
+	fi
+
+	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
+		. ${DISKOUT}/etc/lsb-release
+		if [ "$(echo ${DISTRIB_ID}|tr 'A-Z' 'a-z')-${DISTRIB_RELEASE}" == "$(echo ${ROOTFS_CONTENT}|sed 's/server-//;s/-/ /g')" ]; then
+			exit 0
+		fi
+		rm -rf ${DISKOUT}
+	fi
+
+	mkdir -p ${DISKOUT}
+	tar -xf ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz -C ${DISKOUT} --strip-components 1
+	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+	cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
+
+	# ADD REMOTEPROC
+	FILE_REMOTEPROC="${DISKOUT}/etc/profile.d/remoteproc"
+	if [ -f ${FILE_REMOTEPROC} ]; then
+		echo \
+		'if [ -d /sys/class/remoteproc/remoteproc0 ]; then'
+		'	if [ -f /lib/firmware/firmware ]; then'
+		'		echo "Boot CM4 firmware by remoteproc'
+		'		echo firmware > /sys/class/remoteproc/remoteproc0/firmware'
+		'		echo start > /sys/class/remoteproc/remoteproc0/state'
+		'	fi'
+		'fi' > ${FILE_REMOTEPROC}
+	fi
+	exit 0
 else
 	if [ ! -f ${DISKOUT}/init ]; then
 		rm -rf ${DISKOUT}
