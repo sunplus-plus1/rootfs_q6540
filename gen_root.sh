@@ -99,11 +99,7 @@ elif [ "$1" = "SPINOR" ]; then
 	echo "Skip generating rootfs.img for SPINOR!"
 
 	# Due to limit size of SPI-NOR flash,
-	# remove EthosN firmware, EthosN libraries,
-	# and some utilities.
-	rm -f initramfs/disk/lib/firmware/ethosn.bin
-	rm -f initramfs/disk/lib64/libEthosNDriver.so
-	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	# remove VIP9000 driver libraries and some utilities.
 	rm -f initramfs/disk/sbin/resize2fs
 	rm -f initramfs/disk/bin/7za
 	rm -f initramfs/disk/bin/perf
@@ -134,11 +130,7 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 	echo "Skip generating rootfs.img for NOR_JFFS2!"
 
 	# Due to limit size of SPI-NOR flash,
-	# remove EthosN firmware, EthosN libraries,
-	# and some utilities.
-	rm -f initramfs/disk/lib/firmware/ethosn.bin
-	rm -f initramfs/disk/lib64/libEthosNDriver.so
-	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	# remove VIP9000 driver libraries and some utilities.
 	rm -f initramfs/disk/sbin/resize2fs
 	rm -f initramfs/disk/bin/7za
 	rm -f initramfs/disk/bin/perf
