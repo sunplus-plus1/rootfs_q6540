@@ -62,18 +62,24 @@ if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		fi
 	else
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
-        check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
-        if [ "${check_remoteproc}" == "" ]; then
-echo '
-# ADD REMOTEPROC
-if [ -d /sys/class/remoteproc/remoteproc0 ]; then
-  if [ -f /lib/firmware/firmware ]; then
-       echo "Boot CM4 firmware by remoteproc"
-       echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-       echo start > /sys/class/remoteproc/remoteproc0/state
-  fi
-fi' >> ${DISKOUT}/etc/profile
-       fi
+		check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
+		if [ "${check_remoteproc}" == "" ]; then
+			echo '
+			# ADD REMOTEPROC
+			if [ -d /sys/class/remoteproc/remoteproc0 ]; then
+				if [ -f /lib/firmware/firmware ]; then
+					echo "Boot CM4 firmware by remoteproc"
+					echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+					echo start > /sys/class/remoteproc/remoteproc0/state
+				fi
+			fi' >> ${DISKOUT}/etc/profile
+		fi
+
+		# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
+		FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
+		if [ -d ${DISKOUT}/etc/modprobe.d ]; then
+			echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
+        fi
 	fi
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	exit 0
@@ -100,17 +106,23 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	fi
 
 	# ADD REMOTEPROC
-	FILE_REMOTEPROC="${DISKOUT}/etc/profile.d/remoteproc"
-	if [ -f ${FILE_REMOTEPROC} ]; then
-		echo \
-		'if [ -d /sys/class/remoteproc/remoteproc0 ]; then'
-		'	if [ -f /lib/firmware/firmware ]; then'
-		'		echo "Boot CM4 firmware by remoteproc'
-		'		echo firmware > /sys/class/remoteproc/remoteproc0/firmware'
-		'		echo start > /sys/class/remoteproc/remoteproc0/state'
-		'	fi'
-		'fi' > ${FILE_REMOTEPROC}
+	FILE_REMOTEPROC="${DISKOUT}/etc/profile.d/remoteproc.sh"
+	if [ -d ${DISKOUT}/etc/profile.d ]; then
+		echo '
+		if [ -d /sys/class/remoteproc/remoteproc0 ]; then
+			if [ -f /lib/firmware/firmware ]; then
+				echo "Boot CM4 firmware by remoteproc"
+				echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+				echo start > /sys/class/remoteproc/remoteproc0/state
+			fi
+		fi' > ${FILE_REMOTEPROC}
 	fi
+
+	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
+	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
+	if [ -d ${DISKOUT}/etc/modprobe.d ]; then
+		echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
+    fi
 	exit 0
 else
 	if [ ! -f ${DISKOUT}/init ]; then
@@ -231,8 +243,14 @@ elif [ "$ARCH" = "arm64" ]; then
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
 	fi
 	if [ -d prebuilt/vip9000sdk ]; then
-		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
+		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB64}
 	fi
+	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
+	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
+	if [ ! -d ${DISKOUT}/etc/modprobe.d ]; then
+		mkdir -p ${DISKOUT}/etc/modprobe.d
+	fi
+	echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
 elif [ $V7_BUILD -eq 1 ]; then
 	if [ -d prebuilt/resize2fs/v7 ]; then
 		cp -av prebuilt/resize2fs/v7/* $DISKOUT
