@@ -39,6 +39,10 @@ if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 		if [ "$ARCH" = "arm64" ]; then
 			cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
+			if [ -d prebuilt/vip9000sdk ]; then
+				cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
+				cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
+			fi
 		fi
 	fi
 
@@ -80,7 +84,7 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
 		. ${DISKOUT}/etc/lsb-release
-		if [ "$(echo ${DISTRIB_ID}|tr 'A-Z' 'a-z')-${DISTRIB_RELEASE}" == "$(echo ${ROOTFS_CONTENT}|sed 's/server-//;s/-/ /g')" ]; then
+		if [ "$(echo ${DISTRIB_ID}|tr 'A-Z' 'a-z')-${DISTRIB_RELEASE}" == "$(echo ${ROOTFS_CONTENT}|sed 's/server-//g')" ]; then
 			exit 0
 		fi
 		rm -rf ${DISKOUT}
@@ -90,6 +94,10 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	tar -xf ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz -C ${DISKOUT} --strip-components 1
 	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
+	if [ -d prebuilt/vip9000sdk ]; then
+		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
+		cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
+	fi
 
 	# ADD REMOTEPROC
 	FILE_REMOTEPROC="${DISKOUT}/etc/profile.d/remoteproc"
@@ -221,6 +229,9 @@ elif [ "$ARCH" = "arm64" ]; then
 	if [ -d prebuilt/arm64 ]; then
 		cp -av prebuilt/arm64/* $DISKOUT
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
+	fi
+	if [ -d prebuilt/vip9000sdk ]; then
+		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
 	fi
 elif [ $V7_BUILD -eq 1 ]; then
 	if [ -d prebuilt/resize2fs/v7 ]; then
