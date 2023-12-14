@@ -97,6 +97,9 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	fi
 
 	mkdir -p ${DISKOUT}
+	if [ ! -f ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz ]; then
+		cat ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}-* > ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz
+	fi
 	tar -xf ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz -C ${DISKOUT} --strip-components 1
 	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
