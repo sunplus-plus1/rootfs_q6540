@@ -125,6 +125,8 @@ elif [ "$1" = "SPINOR" ]; then
 	rm -f initramfs/disk/lib64/libSPIRV_viv.so
 	rm -f initramfs/disk/lib64/libVSC.so
 	rm -f initramfs/disk/lib64/libjpeg.a
+	rm -f initramfs/disk/lib64/libtim-vx.so
+	rm -f initramfs/disk/lib64/libvx_delegate.so
 
 elif [ "$1" = "NOR_JFFS2" ]; then
 	echo "Skip generating rootfs.img for NOR_JFFS2!"
@@ -156,6 +158,8 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 	rm -f initramfs/disk/lib64/libSPIRV_viv.so
 	rm -f initramfs/disk/lib64/libVSC.so
 	rm -f initramfs/disk/lib64/libjpeg.a
+	rm -f initramfs/disk/lib64/libtim-vx.so
+	rm -f initramfs/disk/lib64/libvx_delegate.so
 
 elif [ "$1" = "USB" ]; then
 	echo "Skip generating rootfs.img for USB!"
