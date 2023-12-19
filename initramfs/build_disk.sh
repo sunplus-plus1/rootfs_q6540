@@ -38,7 +38,6 @@ if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		tar jxvf rootfs.tar.bz2 &>/dev/null
 		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 		if [ "$ARCH" = "arm64" ]; then
-			cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
 			if [ -d prebuilt/vip9000sdk ]; then
 				cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
 				cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
@@ -102,7 +101,6 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	fi
 	tar -xf ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz -C ${DISKOUT} --strip-components 1
 	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-	cp -R ${DISKZ}usr/modules/ ${DISKOUT}/usr
 	if [ -d prebuilt/vip9000sdk ]; then
 		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
 		cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
