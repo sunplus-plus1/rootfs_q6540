@@ -99,71 +99,67 @@ elif [ "$1" = "SPINOR" ]; then
 	echo "Skip generating rootfs.img for SPINOR!"
 
 	# Due to limit size of SPI-NOR flash,
-	# remove EthosN firmware, EthosN libraries,
-	# and some utilities.
-	rm -f initramfs/disk/lib/firmware/ethosn.bin
-	rm -f initramfs/disk/lib64/libEthosNDriver.so
-	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	# remove VIP9000 driver libraries and some utilities.
 	rm -f initramfs/disk/sbin/resize2fs
 	rm -f initramfs/disk/bin/7za
 	rm -f initramfs/disk/bin/perf
 	rm -f initramfs/disk/bin/enable_arm_pmu.ko
 	rm -f initramfs/disk/bin/perf_arm_pum
-	rm -f initramfs/disk/usr/modules/galcore.ko
-	rm -f initramfs/disk/usr/lib64/libArchModelSw.so
-	rm -f initramfs/disk/usr/lib64/libCLC.so
-	rm -f initramfs/disk/usr/lib64/libGAL.so
-	rm -f initramfs/disk/usr/lib64/libNNArchPerf.so
-	rm -f initramfs/disk/usr/lib64/libNNGPUBinary.so
-	rm -f initramfs/disk/usr/lib64/libNNVXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.1
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.3
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.3.0.0
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so.1
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so.1.3.0
-	rm -f initramfs/disk/usr/lib64/libOpenVXU.so
-	rm -f initramfs/disk/usr/lib64/libOvx12VXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libOvxGPUVXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libovxlib.so
-	rm -f initramfs/disk/usr/lib64/libSPIRV_viv.so
-	rm -f initramfs/disk/usr/lib64/libVSC.so
+	rm -f initramfs/disk/lib64/libArchModelSw.so
+	rm -f initramfs/disk/lib64/libCLC.so
+	rm -f initramfs/disk/lib64/libGAL.so
+	rm -f initramfs/disk/lib64/libNNArchPerf.so
+	rm -f initramfs/disk/lib64/libNNGPUBinary.so
+	rm -f initramfs/disk/lib64/libNNVXCBinary.so
+	rm -f initramfs/disk/lib64/libOpenCL.so
+	rm -f initramfs/disk/lib64/libOpenCL.so.1
+	rm -f initramfs/disk/lib64/libOpenCL.so.3
+	rm -f initramfs/disk/lib64/libOpenCL.so.3.0.0
+	rm -f initramfs/disk/lib64/libOpenVX.so
+	rm -f initramfs/disk/lib64/libOpenVX.so.1
+	rm -f initramfs/disk/lib64/libOpenVX.so.1.3.0
+	rm -f initramfs/disk/lib64/libOpenVXU.so
+	rm -f initramfs/disk/lib64/libOvx12VXCBinary.so
+	rm -f initramfs/disk/lib64/libOvxGPUVXCBinary.so
+	rm -f initramfs/disk/lib64/libovxlib.so
+	rm -f initramfs/disk/lib64/libSPIRV_viv.so
+	rm -f initramfs/disk/lib64/libVSC.so
+	rm -f initramfs/disk/lib64/libjpeg.a
+	rm -f initramfs/disk/lib64/libtim-vx.so
+	rm -f initramfs/disk/lib64/libvx_delegate.so
 
 elif [ "$1" = "NOR_JFFS2" ]; then
 	echo "Skip generating rootfs.img for NOR_JFFS2!"
 
 	# Due to limit size of SPI-NOR flash,
-	# remove EthosN firmware, EthosN libraries,
-	# and some utilities.
-	rm -f initramfs/disk/lib/firmware/ethosn.bin
-	rm -f initramfs/disk/lib64/libEthosNDriver.so
-	rm -f initramfs/disk/lib64/libEthosNSupport.so
+	# remove VIP9000 driver libraries and some utilities.
 	rm -f initramfs/disk/sbin/resize2fs
 	rm -f initramfs/disk/bin/7za
 	rm -f initramfs/disk/bin/perf
 	rm -f initramfs/disk/bin/enable_arm_pmu.ko
 	rm -f initramfs/disk/bin/perf_arm_pum
-	rm -f initramfs/disk/usr/modules/galcore.ko
-	rm -f initramfs/disk/usr/lib64/libArchModelSw.so
-	rm -f initramfs/disk/usr/lib64/libCLC.so
-	rm -f initramfs/disk/usr/lib64/libGAL.so
-	rm -f initramfs/disk/usr/lib64/libNNArchPerf.so
-	rm -f initramfs/disk/usr/lib64/libNNGPUBinary.so
-	rm -f initramfs/disk/usr/lib64/libNNVXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.1
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.3
-	rm -f initramfs/disk/usr/lib64/libOpenCL.so.3.0.0
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so.1
-	rm -f initramfs/disk/usr/lib64/libOpenVX.so.1.3.0
-	rm -f initramfs/disk/usr/lib64/libOpenVXU.so
-	rm -f initramfs/disk/usr/lib64/libOvx12VXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libOvxGPUVXCBinary.so
-	rm -f initramfs/disk/usr/lib64/libovxlib.so
-	rm -f initramfs/disk/usr/lib64/libSPIRV_viv.so
-	rm -f initramfs/disk/usr/lib64/libVSC.so
+	rm -f initramfs/disk/lib64/libArchModelSw.so
+	rm -f initramfs/disk/lib64/libCLC.so
+	rm -f initramfs/disk/lib64/libGAL.so
+	rm -f initramfs/disk/lib64/libNNArchPerf.so
+	rm -f initramfs/disk/lib64/libNNGPUBinary.so
+	rm -f initramfs/disk/lib64/libNNVXCBinary.so
+	rm -f initramfs/disk/lib64/libOpenCL.so
+	rm -f initramfs/disk/lib64/libOpenCL.so.1
+	rm -f initramfs/disk/lib64/libOpenCL.so.3
+	rm -f initramfs/disk/lib64/libOpenCL.so.3.0.0
+	rm -f initramfs/disk/lib64/libOpenVX.so
+	rm -f initramfs/disk/lib64/libOpenVX.so.1
+	rm -f initramfs/disk/lib64/libOpenVX.so.1.3.0
+	rm -f initramfs/disk/lib64/libOpenVXU.so
+	rm -f initramfs/disk/lib64/libOvx12VXCBinary.so
+	rm -f initramfs/disk/lib64/libOvxGPUVXCBinary.so
+	rm -f initramfs/disk/lib64/libovxlib.so
+	rm -f initramfs/disk/lib64/libSPIRV_viv.so
+	rm -f initramfs/disk/lib64/libVSC.so
+	rm -f initramfs/disk/lib64/libjpeg.a
+	rm -f initramfs/disk/lib64/libtim-vx.so
+	rm -f initramfs/disk/lib64/libvx_delegate.so
 
 elif [ "$1" = "USB" ]; then
 	echo "Skip generating rootfs.img for USB!"
