@@ -108,6 +108,7 @@ elif [ "$1" = "SPINOR" ]; then
 	rm -f initramfs/disk/lib64/libArchModelSw.so
 	rm -f initramfs/disk/lib64/libCLC.so
 	rm -f initramfs/disk/lib64/libGAL.so
+	rm -f initramfs/disk/lib64/libGLSLC.so
 	rm -f initramfs/disk/lib64/libNNArchPerf.so
 	rm -f initramfs/disk/lib64/libNNGPUBinary.so
 	rm -f initramfs/disk/lib64/libNNVXCBinary.so
@@ -141,6 +142,7 @@ elif [ "$1" = "NOR_JFFS2" ]; then
 	rm -f initramfs/disk/lib64/libArchModelSw.so
 	rm -f initramfs/disk/lib64/libCLC.so
 	rm -f initramfs/disk/lib64/libGAL.so
+	rm -f initramfs/disk/lib64/libGLSLC.so
 	rm -f initramfs/disk/lib64/libNNArchPerf.so
 	rm -f initramfs/disk/lib64/libNNGPUBinary.so
 	rm -f initramfs/disk/lib64/libNNVXCBinary.so
