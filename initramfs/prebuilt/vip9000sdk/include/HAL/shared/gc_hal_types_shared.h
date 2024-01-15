@@ -107,6 +107,17 @@ extern "C" {
 /* kernel layer keyword. */
 #define gcmkINLINE            inline
 
+/* kernel fall-through keyword. */
+#if defined __has_attribute
+#if __has_attribute(__fallthrough__)
+#  define gcmkFALLTHRU                   __attribute__((__fallthrough__))
+# else
+#  define gcmkFALLTHRU                   do {} while (0)  /* fallthrough */
+# endif
+#else
+# define gcmkFALLTHRU                    do {} while (0)  /* fallthrough */
+#endif
+
 /* Possible debug flags. */
 #define gcdDEBUG_NONE           0
 #define gcdDEBUG_ALL            (1 << 0)
@@ -313,6 +324,9 @@ typedef union _gcuFLOAT_UINT32 {
 /* Lower 4G VA range. */
 #define gcvALLOC_FLAG_32BIT_VA              0x00040000
 #define gcvALLOC_FLAG_PRIOR_32BIT_VA        0x00080000
+
+/* Dynamically allocate local memory pool memory. */
+#define gcvALLOC_FLAG_DYNAMIC_ALLOC_LOCAL   0x00100000
 
 /* Real allocation happens when GPU page fault. */
 #define gcvALLOC_FLAG_ALLOC_ON_FAULT        0x01000000

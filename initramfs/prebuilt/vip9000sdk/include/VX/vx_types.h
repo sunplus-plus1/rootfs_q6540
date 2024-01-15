@@ -477,6 +477,8 @@ enum vx_type_e {
     VX_TYPE_SPINST          = 0x81B,/*!< \brief A <tt>\ref vx_spinst</tt>. */
     VX_TYPE_INT4            = 0x81C,/*!< \brief A <tt>\ref signed 4bits tensor.</tt>. */
     VX_TYPE_UINT4           = 0x81D,/*!< \brief A <tt>\ref unsigned 4bits tensor.</tt>. */
+    VX_TYPE_FLOAT8_E4M3     = 0x81E,/*!< \brief A <tt>\ref vx_float8_e4m3</tt>. */
+    VX_TYPE_FLOAT8_E5M2     = 0x81F,/*!< \brief A <tt>\ref vx_float8_e5m2</tt>. */
 };
 
 /*! \brief The enumeration of all status codes.
@@ -538,6 +540,15 @@ typedef vx_enum vx_action;
  * \ingroup group_node_callback
  */
 typedef vx_action (VX_CALLBACK *vx_nodecomplete_f)(vx_node node);
+
+/*! \brief A callback to the client for querying information of a node.
+ * \see vx_action
+ * \see vxAssignNodeCallback
+ * \param [in] node The node to which the callback was attached.
+ * \return An action code from <tt>\ref vx_action_e</tt>.
+ * \ingroup group_node_callback
+ */
+typedef vx_status (VX_CALLBACK *vx_nodequery_f)(vx_node node);
 
 /*! \brief Vendor IDs are 2 nibbles in size and are located in the upper byte of
  * the 4 bytes of an enumeration.
@@ -794,6 +805,8 @@ enum vx_convert_policy_e {
     VX_CONVERT_POLICY_WRAP = VX_ENUM_BASE(VX_ID_KHRONOS, VX_ENUM_CONVERT_POLICY) + 0x0,
     /*! \brief Results are saturated to the bit depth of the output operand. */
     VX_CONVERT_POLICY_SATURATE = VX_ENUM_BASE(VX_ID_KHRONOS, VX_ENUM_CONVERT_POLICY) + 0x1,
+    /*! \brief Results preserve infinity and nan value. */
+    VX_CONVERT_POLICY_INF = VX_ENUM_BASE(VX_ID_VIVANTE, VX_ENUM_CONVERT_POLICY) + 0x0,
 };
 
 /*! \brief Based on the VX_DF_IMAGE definition.
@@ -1028,6 +1041,11 @@ enum vx_node_attribute_e {
 
     VX_NODE_ATTRIBUTE_FOR_HW_QUALITY     = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0xA,
 
+    VX_NODE_SWTILING_TILE_XY                   = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0x10,
+    VX_NODE_SPINST_INDEX                       = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0x11,
+    VX_NODE_SPCONV_PCQ_REPLACE_SPINST          = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0x12,
+    VX_NODE_SP_NAME                            = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0x13,
+    VX_NODE_SPINST                             = VX_ATTRIBUTE_BASE(VX_ID_KHRONOS, VX_TYPE_NODE) + 0x14,
 };
 
 /*! \brief The parameter attributes list

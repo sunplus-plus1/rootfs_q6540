@@ -1079,7 +1079,8 @@ typedef struct _gcsTHREAD_WALKER_INFO {
     gctUINT32   groupNumberUniformIdx;
     gctADDRESS  baseAddress;
     gctBOOL     bDual16;
-    gctBOOL     bVipSram;
+    gctUINT32   coreCount;
+    gctUINT32   coreIDs[gcdMAX_3DGPU_COUNT];
 } gcsTHREAD_WALKER_INFO;
 
 #if gcdENABLE_3D && gcdUSE_VX
@@ -1540,6 +1541,9 @@ gcoTEXTURE_LockMipMap(IN gcoTEXTURE Texture,
 
 gceSTATUS
 gcoTEXTURE_SetEndianHint(IN gcoTEXTURE Texture, IN gceENDIAN_HINT EndianHint);
+
+gceSTATUS
+gcoTEXTURE_SetSurfType(IN gcoTEXTURE Texture, IN gceSURF_TYPE type);
 
 gceSTATUS
 gcoTEXTURE_Disable(IN gcoHAL Hal, IN gctINT Sampler, IN gctBOOL DefaultInteger);

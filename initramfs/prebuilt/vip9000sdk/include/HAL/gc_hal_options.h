@@ -162,7 +162,7 @@
  *       When set to 1, will dump hw command buffer when GPU/VIP hang.
  */
 #ifndef gcdDUMP_HW_SUBCOMMAND
-#define gcdDUMP_HW_SUBCOMMAND           1
+#define gcdDUMP_HW_SUBCOMMAND           0
 #endif
 
 /*
@@ -1226,17 +1226,13 @@
  *      platform doesn't want/need to use trust zone.
  */
 #ifndef gcdENABLE_TRUST_APPLICATION
-#if (defined(_WIN32) && !defined(UNDER_CE)) || (defined(LINUX) && !defined(EMULATOR))
-#  define gcdENABLE_TRUST_APPLICATION         1
-# else
-#  define gcdENABLE_TRUST_APPLICATION         0
-# endif
+#  define gcdENABLE_TRUST_APPLICATION           0
 #endif
 
 /* Disable gcdENABLE_TRUST_APPLICATION when oboslete gcdSECURITY enabled. */
 #if gcdSECURITY
 # undef gcdENABLE_TRUST_APPLICATION
-# define gcdENABLE_TRUST_APPLICATION             0
+# define gcdENABLE_TRUST_APPLICATION            0
 #endif
 
 #ifndef gcdMMU_SECURE_AREA_SIZE
@@ -1561,6 +1557,20 @@
  */
 #ifndef gcdENABLE_NONCACHE_COMMANDBUF
 #define gcdENABLE_NONCACHE_COMMANDBUF            0
+#endif
+
+/*
+ *  gcdENABLE_CLEAR_FENCE
+ *
+ *      If enabled, will record fence value in kernel and
+ *      recovery all fence when the kernel do recovery operation.
+ */
+#ifndef gcdENABLE_CLEAR_FENCE
+#if defined(LINUX) && !defined(EMULATOR)
+#  define gcdENABLE_CLEAR_FENCE                  1
+# else
+#  define gcdENABLE_CLEAR_FENCE                  0
+# endif
 #endif
 
 #endif /* __gc_hal_options_h_ */

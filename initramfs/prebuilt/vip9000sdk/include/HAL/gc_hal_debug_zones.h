@@ -262,7 +262,8 @@ extern "C" {
 #define gcdZONE_VX_TENSOR    (gcdZONE_API_VX | (1 << 25))
 #define gcdZONE_VX_THRESHOLD (gcdZONE_API_VX | (1 << 26))
 #define gcdZONE_VX_SPINST    (gcdZONE_API_VX | (1 << 27))
-#define gcdZONE_VX_OTHERS    (gcdZONE_API_VX | (1 << 28))
+#define gcdZONE_VX_SP        (gcdZONE_API_VX | (1 << 28))
+#define gcdZONE_VX_OTHERS    (gcdZONE_API_VX | (1 << 29))
 
 /******************************************************************************
  ******************************** Utility Zones *******************************

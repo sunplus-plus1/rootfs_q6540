@@ -19,7 +19,6 @@ extern "C" {
 #endif
 
 #define ANDROID_PROFILER_COUNTERS   1
-#define APP_INFO                    1
 #define FPGA_INFO                   0
 #define RECORD_COUNTER_ADDRESS      0
 

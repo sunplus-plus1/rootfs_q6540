@@ -641,15 +641,28 @@ enum gceVPG {
 #define   MODULE_HOST_INTERFACE0_COUNTER_NUM              0x9
 #define   MODULE_HOST_INTERFACE1_COUNTER_NUM              0x7
 #define   MODULE_GPUL2_CACHE_COUNTER_NUM                  0xE
-#define   TOTAL_PROBE_NUMBER                                                    \
-    (MODULE_FRONT_END_COUNTER_NUM + MODULE_VERTEX_SHADER_COUNTER_NUM +          \
-     MODULE_PRIMITIVE_ASSEMBLY_COUNTER_NUM + MODULE_SETUP_COUNTER_NUM +         \
-     MODULE_RASTERIZER_COUNTER_NUM + MODULE_PIXEL_SHADER_COUNTER_NUM +          \
-     MODULE_TEXTURE_COUNTER_NUM + MODULE_PIXEL_ENGINE_COUNTER_NUM +             \
-     MODULE_MEMORY_CONTROLLER_COLOR_COUNTER_NUM +                               \
-     MODULE_MEMORY_CONTROLLER_DEPTH_COUNTER_NUM +                               \
-     MODULE_HOST_INTERFACE0_COUNTER_NUM + MODULE_HOST_INTERFACE1_COUNTER_NUM +  \
-     MODULE_GPUL2_CACHE_COUNTER_NUM)
+#define   MODULE_WORK_DISTRIBUTOR_COUNTER_NUM  0x0
+#define   MODULE_POSITION_PA_COUNTER_NUM  0xA
+#define   MODULE_FINAL_PA_COUNTER_NUM  0xB
+#define   MODULE_TESS_CTRL_SHADER_COUNTER_NUM  0x9
+#define   MODULE_TESS_EVAL_SHADER_COUNTER_NUM  0x9
+#define   MODULE_GEOMETRY_SHADER_COUNTER_NUM  0x9
+#define   MODULE_TRANSFORM_FEEDBACK_COUNTER_NUM  0x0
+#define   MODULE_UNIVERSAL_STORAGE_COUNTER_NUM  0x0
+#define   MODULE_DIRECTORY_COUNTER_NUM  0x0
+#define   TOTAL_PROBE_NUMBER                                                        \
+    (MODULE_FRONT_END_COUNTER_NUM + MODULE_VERTEX_SHADER_COUNTER_NUM +              \
+     MODULE_PRIMITIVE_ASSEMBLY_COUNTER_NUM + MODULE_SETUP_COUNTER_NUM +             \
+     MODULE_RASTERIZER_COUNTER_NUM + MODULE_PIXEL_SHADER_COUNTER_NUM +              \
+     MODULE_TEXTURE_COUNTER_NUM + MODULE_PIXEL_ENGINE_COUNTER_NUM +                 \
+     MODULE_MEMORY_CONTROLLER_COLOR_COUNTER_NUM +                                   \
+     MODULE_MEMORY_CONTROLLER_DEPTH_COUNTER_NUM +                                   \
+     MODULE_HOST_INTERFACE0_COUNTER_NUM + MODULE_HOST_INTERFACE1_COUNTER_NUM +      \
+     MODULE_GPUL2_CACHE_COUNTER_NUM + MODULE_WORK_DISTRIBUTOR_COUNTER_NUM +         \
+     MODULE_POSITION_PA_COUNTER_NUM + MODULE_FINAL_PA_COUNTER_NUM +                 \
+     MODULE_TESS_CTRL_SHADER_COUNTER_NUM + MODULE_TESS_EVAL_SHADER_COUNTER_NUM +    \
+     MODULE_GEOMETRY_SHADER_COUNTER_NUM + MODULE_TRANSFORM_FEEDBACK_COUNTER_NUM +   \
+     MODULE_UNIVERSAL_STORAGE_COUNTER_NUM + MODULE_DIRECTORY_COUNTER_NUM)
 
 #define   TOTAL_CL_COUNTER_NUMBER                                               \
     (\
@@ -926,6 +939,10 @@ enum gceVPG {
             Memory = memory + total_probe_number * CoreId * (1 << clusterIDWidth);              \
             min_counter = *(Memory + (counterId + offset) * (1 << clusterIDWidth));             \
             for (i = 0; i < (gctUINT32)(1 << clusterIDWidth); i++) {                            \
+            if (Profiler->isDebugCounter) \
+            { \
+                gcmPRINT("%s %d hi_total_idle_cycle_count CoreId=%d clusterId=%d offset=%u cpuaddress=%p value=%u", __FUNCTION__, __LINE__, CoreId, i, offset, (Memory + (counterId + offset) * (1 << clusterIDWidth) + i), *(Memory + (counterId + offset) * (1 << clusterIDWidth) + i)); \
+            } \
                 if (min_counter > *(Memory + (counterId + offset) * (1 << clusterIDWidth) + i)) \
                     min_counter = *(Memory + (counterId + offset) * (1 << clusterIDWidth) + i); \
             }                                                                                   \
@@ -1040,6 +1057,7 @@ struct _gcoPROFILER {
 
     gctBOOL                     needBltDump;
     gctBOOL                     isDummyDraw;
+    gctBOOL                     isDebugCounter;
     gctUINT32                   rdByte;
     gctUINT32                   wrByte;
     gctUINT32                   busyCycle;
@@ -1047,6 +1065,7 @@ struct _gcoPROFILER {
     /*query some features from hw*/
     gctUINT32                   coreCount;
     gctUINT32                   shaderCoreCount;
+    gctUINT32                   clusterCount;
     gctBOOL                     bHalti4;
     gctBOOL                     psRenderPixelFix;
     gctBOOL                     axiBus128bits;

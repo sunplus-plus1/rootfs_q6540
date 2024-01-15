@@ -478,6 +478,23 @@ gckOS_TraceGpuMemory(IN gckOS Os, IN gctINT32 ProcessID, IN gctINT64 Delta);
 void
 gckOS_NodeIdAssign(gckOS Os, gcuVIDMEM_NODE_PTR Node);
 
+#if gcdENABLE_CLEAR_FENCE
+gceSTATUS
+gckOS_ClearAllFence(gckDEVICE Device);
+
+gctUINT64
+gckOS_AllocFenceRecordId(IN gckOS Os, IN gcsUSER_FENCE_INFO_PTR fence_info);
+
+gcsUSER_FENCE_INFO_PTR
+gckOS_ReleaseFenceRecordId(IN gckOS Os, IN gctUINT64 recordId);
+
+void
+gckOS_PreLoadFenceRecId(IN gckOS Os);
+
+void
+gckOS_PreLoadEndFenceRecId(IN gckOS Os);
+
+#endif
 /*******************************************************************************
  **
  **  gckOS_AtomConstruct
