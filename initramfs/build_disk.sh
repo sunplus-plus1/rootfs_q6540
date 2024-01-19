@@ -109,17 +109,45 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 		cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
 	fi
 
-	# ADD REMOTEPROC
-	FILE_REMOTEPROC="${DISKOUT}/etc/profile.d/remoteproc.sh"
-	if [ -d ${DISKOUT}/etc/profile.d ]; then
-		echo '
-		if [ -d /sys/class/remoteproc/remoteproc0 ]; then
-			if [ -f /lib/firmware/firmware ]; then
-				echo "Boot CM4 firmware by remoteproc"
-				echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-				echo start > /sys/class/remoteproc/remoteproc0/state
-			fi
-		fi' > ${FILE_REMOTEPROC}
+	# ADD systemd rc-local.service
+	FILE_RC_LOCAL_SERVICE="${DISKOUT}/etc/systemd/system/rc-local.service"
+	if [ -d ${DISKOUT}/etc/systemd/system ]; then
+		cat <<EOF > ${FILE_RC_LOCAL_SERVICE}
+[Unit]
+  Description=/etc/rc.local Compatibility
+  ConditionPathExists=/etc/rc.local
+
+[Service]
+  Type=forking
+  ExecStart=/etc/rc.local start
+  TimeoutSec=0
+  StandardOutput=tty
+  RemainAfterExit=yes
+  SysVStartPriority=99
+
+[Install]
+  WantedBy=multi-user.target
+EOF
+	fi
+
+	# ADD rc-local.seervice action file to do CM4-REMOTEPROC and change NPU(galcore) device file attribute
+	FILE_RC_LOCAL="${DISKOUT}/etc/rc.local"
+	if [ -f ${FILE_RC_LOCAL_SERVICE} ]; then
+		cat <<EOF > ${FILE_RC_LOCAL}
+#!/bin/bash
+if [ -d /sys/class/remoteproc/remoteproc0 ];then
+        if [ -f /lib/firmware/firmware ];then
+                echo "Boot CM4 firmware by remoteproc"
+                echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+                echo start > /sys/class/remoteproc/remoteproc0/state
+        fi
+fi
+if [ -e /dev/galcore ];then
+        echo "Change NPU device "galcore" file attritute"
+        chmod 666 /dev/galcore
+fi
+EOF
+		chmod 755 ${FILE_RC_LOCAL}
 	fi
 
 	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
