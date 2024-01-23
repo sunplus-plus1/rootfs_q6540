@@ -130,25 +130,12 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 EOF
 	fi
 
-	# ADD rc-local.seervice action file to do CM4-REMOTEPROC and change NPU(galcore) device file attribute
-	FILE_RC_LOCAL="${DISKOUT}/etc/rc.local"
-	if [ -f ${FILE_RC_LOCAL_SERVICE} ]; then
-		cat <<EOF > ${FILE_RC_LOCAL}
-#!/bin/bash
-if [ -d /sys/class/remoteproc/remoteproc0 ];then
-        if [ -f /lib/firmware/firmware ];then
-                echo "Boot CM4 firmware by remoteproc"
-                echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-                echo start > /sys/class/remoteproc/remoteproc0/state
-        fi
-fi
-if [ -e /dev/galcore ];then
-        echo "Change NPU device "galcore" file attritute"
-        chmod 666 /dev/galcore
-fi
-EOF
-		chmod 755 ${FILE_RC_LOCAL}
-	fi
+	# Copy rc.local file to /etc of rootfs, this file is used for systemd rc-local.seervice
+	# Action within this file:
+	# 1. Do CM4-REMOTEPROC
+	# 2. Change NPU(galcore) device file attribute
+	# 3. Extend rootfs partition and resize partition base on disk size limitation.
+	cp ubuntu/etc/rc.local ${DISKOUT}/etc
 
 	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
 	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
