@@ -78,12 +78,15 @@ if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 		if [ -d ${DISKOUT}/etc/modprobe.d ]; then
 			echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-		
+
 		# for VC8000 V4L2 vsi daemon
 		cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
-        fi
+		fi
 	fi
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
+	if [ -d prebuilt/udev ]; then
+		cp -av prebuilt/udev/* $DISKOUT
+	fi
 	exit 0
 elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	if [ "$ARCH" != "arm64" ]; then
@@ -141,7 +144,10 @@ EOF
 	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 	if [ -d ${DISKOUT}/etc/modprobe.d ]; then
 		echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-    fi
+	fi
+	if [ -d prebuilt/udev ]; then
+		cp -av prebuilt/udev/lib/udev/* $DISKOUT/lib/udev
+	fi
 	exit 0
 else
 	if [ ! -f ${DISKOUT}/init ]; then
