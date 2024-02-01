@@ -5,3 +5,4 @@ rootfs.img
 disk/
 extra/
 busybox-*/
+initramfs/ubuntu/ubuntu-server-20.04-rootfs-arm64*

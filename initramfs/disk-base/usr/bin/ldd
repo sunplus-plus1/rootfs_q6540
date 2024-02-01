@@ -26,7 +26,7 @@
 TEXTDOMAIN=libc
 TEXTDOMAINDIR=/usr/share/locale
 
-RTLDLIST="/lib/ld-linux-armhf.so.3 /lib/ld-linux.so.3 /lib/ld-linux-riscv64-lp64d.so.1 /lib/ld-linux-aarch64.so.1"
+RTLDLIST="/lib/ld-linux-armhf.so.3 /lib/ld-linux.so.3 /lib/ld-linux-aarch64.so.1"
 warn=
 bind_now=
 verbose=
