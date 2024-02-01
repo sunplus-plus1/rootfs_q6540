@@ -162,9 +162,7 @@ if [ "$2" = "update" ]; then
 fi
 
 # Toolchain
-if [ "$ARCH" = "riscv" ]; then
-	DISK_LIB=lib-riscv
-elif [ "$ARCH" = "arm64" ]; then
+if [ "$ARCH" = "arm64" ]; then
 	DISK_LIB="lib-v7hf lib-arm64"
 elif [ $V7_BUILD -eq 1 ]; then
 	DISK_LIB=lib-v7hf
@@ -258,11 +256,7 @@ if [ -d extra/ ]; then
 	cp -av extra/* $DISKOUT
 fi
 
-if [ "$ARCH" = "riscv" ]; then
-	if [ -d prebuilt/riscv ]; then
-		cp -av prebuilt/riscv/* $DISKOUT
-	fi
-elif [ "$ARCH" = "arm64" ]; then
+if [ "$ARCH" = "arm64" ]; then
 	if [ -d prebuilt/arm64 ]; then
 		cp -av prebuilt/arm64/* $DISKOUT
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
