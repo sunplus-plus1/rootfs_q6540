@@ -8,7 +8,7 @@ UBUNTU_RELEASE='20.04'
 UBUNTU_BASE_RELEASE='20.04.5'
 UBUNTU_CODENAME='focal'
 
-# server or mate
+# server ,mate or xfce
 UBUNTU_TYPE='server'
 
 UBUNTU_APT_SOURCE_URL='http://ports.ubuntu.com'
@@ -24,7 +24,7 @@ deb ${UBUNTU_APT_SOURCE_URL}/ubuntu-ports/ ${UBUNTU_CODENAME} main restricted un
 deb ${UBUNTU_APT_SOURCE_URL}/ubuntu-ports/ ${UBUNTU_CODENAME}-security main restricted universe multiverse
 deb ${UBUNTU_APT_SOURCE_URL}/ubuntu-ports/ ${UBUNTU_CODENAME}-updates main restricted universe multiverse
 "
-#UBUNTU_MATE_OEM_CONFIG='true'
+#UBUNTU_MATE_XFCE_OEM_CONFIG='true'
 UBUNTU_APT_SOURCE_RESTORE_FROM_BACKUP='true'
 UBUNTU_APT_SOURCES_LIST_FILE="${UBUNTU_ROOTFS}/etc/apt/sources.list"
 UBUNTU_SERVER_PACKAGES="ubuntu-standard ubuntu-minimal ubuntu-server \
@@ -34,6 +34,14 @@ UBUNTU_MATE_PACKAGES="\
 ubuntu-standard ubuntu-minimal ubuntu-mate-desktop \
 curl iputils-ping net-tools openssh-server \
 oem-config-gtk \
+"
+UBUNTU_XFCE_PACKAGES="\
+ubuntu-standard ubuntu-minimal xubuntu-desktop \
+curl iputils-ping net-tools openssh-server \
+oem-config-gtk \
+"
+UBUNTU_XFCE_REMOVE_PACKAGES="\
+light-locker xfce4-screensaver \
 "
 rootfs_base()
 {
@@ -88,6 +96,9 @@ rootfs_install()
     chroot ${UBUNTU_ROOTFS} /bin/bash -c "apt -y upgrade"
     if [ "$UBUNTU_TYPE" == "mate" ]; then
         chroot ${UBUNTU_ROOTFS} /bin/bash -c "apt-get install -y ${UBUNTU_MATE_PACKAGES}"
+    elif [ "$UBUNTU_TYPE" == "xfce" ]; then
+        chroot ${UBUNTU_ROOTFS} /bin/bash -c "apt-get install -y ${UBUNTU_XFCE_PACKAGES}"
+        chroot ${UBUNTU_ROOTFS} /bin/bash -c "apt-get remove -y ${UBUNTU_XFCE_REMOVE_PACKAGES}"
     else
         chroot ${UBUNTU_ROOTFS} /bin/bash -c "apt-get install -y ${UBUNTU_SERVER_PACKAGES}"
     fi
@@ -98,15 +109,15 @@ rootfs_config()
     chroot ${UBUNTU_ROOTFS} /bin/bash -c "locale-gen en_US en_US.UTF-8"
     chroot ${UBUNTU_ROOTFS} /bin/bash -c "update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8"
     if [ -n "$DEFAULT_USER" ]; then
-            if [ "$UBUNTU_TYPE" == "server" ] || [ -z "$UBUNTU_MATE_OEM_CONFIG" ]; then
+            if [ "$UBUNTU_TYPE" == "server" ] || [ -z "$UBUNTU_MATE_XFCE_OEM_CONFIG" ]; then
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "adduser $DEFAULT_USER --gecos \"\" --disabled-password"
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "echo \"${DEFAULT_USER}:${DEFAULT_PASSWORD}\"|chpasswd"
             fi
             chroot ${UBUNTU_ROOTFS} /bin/bash -c "usermod -aG adm,cdrom,sudo,dip,plugdev $DEFAULT_USER"
-            if [ "$UBUNTU_TYPE" == "mate" ]; then
+            if [ "$UBUNTU_TYPE" == "mate" ] || [ "$UBUNTU_TYPE" == "xfce" ]; then
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "usermod -aG lpadmin $DEFAULT_USER"
             fi
-            if [ "$UBUNTU_MATE_OEM_CONFIG" == "true" ]; then
+            if [ "$UBUNTU_MATE_XFCE_OEM_CONFIG" == "true" ]; then
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "oem-config-prepare"
             fi
     fi
