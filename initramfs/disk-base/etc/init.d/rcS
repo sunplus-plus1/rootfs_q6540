@@ -6,14 +6,20 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin
 /bin/mount -t proc none /proc
 /bin/mount -t sysfs none /sys
 
+if ! /bin/mountpoint -q /dev; then
+	/bin/mount -t devtmpfs devtmpfs /dev
+fi
+
 # mount all other filesystems (/etc/fstab)
 /bin/echo "Mounting other filesystems ..."
 /bin/mount -a
 
 rm -f /dev/rtc*
 
-/sbin/mdev -d
-/sbin/udevtrigger.sh
+if [ -d /proc/net ]; then
+	/sbin/mdev -d
+	/sbin/udevtrigger.sh
+fi
 
 mkdir -p /dev/pts /dev/shm
 /bin/mount -t devpts -o mode=620 none /dev/pts
