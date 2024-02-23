@@ -22,4 +22,4 @@ initramfs_update:
 	 cd -
 
 clean:
-	@rm -rf rootfs.img initramfs/disk/ initramfs/busybox-1.31.1/
+	@rm -rf rootfs.img initramfs/disk/ initramfs/busybox-1.31.1/ initramfs/.tmp/

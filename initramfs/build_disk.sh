@@ -95,17 +95,22 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
 		. ${DISKOUT}/etc/lsb-release
-		if [ "$(echo ${DISTRIB_ID}|tr 'A-Z' 'a-z')-${DISTRIB_RELEASE}" == "$(echo ${ROOTFS_CONTENT}|sed 's/server-//g')" ]; then
+		if [ "${DISTRIB_ID} == Ubuntu" ]; then
 			exit 0
 		fi
 		rm -rf ${DISKOUT}
 	fi
 
 	mkdir -p ${DISKOUT}
-	if [ ! -f ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz ]; then
-		cat ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}-* > ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz
-	fi
-	tar -xf ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz -C ${DISKOUT} --strip-components 1
+	echo "Uncompressing ${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz"
+	if [ -x /usr/bin/pv ]; then
+		pv -prb ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
+	else
+		cat ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
+        fi
+	mkdir -p .tmp
+	ln -sf ../ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}-attr.list .tmp/attr.list
+
 	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	if [ -d prebuilt/vip9000sdk ]; then
 		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
