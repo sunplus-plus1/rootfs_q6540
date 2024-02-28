@@ -104,12 +104,12 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 	mkdir -p ${DISKOUT}
 	echo "Uncompressing ${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz"
 	if [ -x /usr/bin/pv ]; then
-		pv -prb ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
+		pv -prb ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
 	else
-		cat ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
+		cat ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
         fi
 	mkdir -p .tmp
-	ln -sf ../ubuntu/${ROOTFS_CONTENT}-rootfs-${ARCH}-attr.list .tmp/attr.list
+	ln -sf ../ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}-attr.list .tmp/attr.list
 
 	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	if [ -d prebuilt/vip9000sdk ]; then
