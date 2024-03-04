@@ -30,6 +30,12 @@ if [ ! -f $PART_FLAG ];then
 	ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
 	echo "START_PART_NUM=$ST_PART_NUM"
 
+	if [ $START_PART_NUM -ne 2 ]
+		echo "Not SD card rootfs partition, it's not necessary to do extend rootfs partition."
+		touch $PART_FLAG
+		exit 1
+	fi
+
 	PART_START=$(parted $ROOT_DEV -ms unit s p | grep "^${ST_PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
 	echo "PART_START_SECTOR=$PART_START sector"
 
