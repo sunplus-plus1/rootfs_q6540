@@ -45,6 +45,11 @@ light-locker xfce4-screensaver \
 "
 rootfs_base()
 {
+    if [ ! -f /usr/bin/qemu-aarch64-static ]; then
+        echo "Please apt install qemu-user-static to get qemu-aarch64-static"
+        exit 1
+    fi
+
     if [ ! -f ${UBUNTU_BASE_NAME} ]; then
         wget ${UBUNTU_BASE_URL}/${UBUNTU_BASE_NAME}
     fi
@@ -52,7 +57,7 @@ rootfs_base()
     mkdir -p $UBUNTU_ROOTFS
     tar -xpf ${UBUNTU_BASE_NAME} -C ${UBUNTU_ROOTFS}
 
-    if [ -x ${UBUNTU_ROOTFS}/usr/bin/qemu-aarch64-static ]; then 
+    if [ ! -f ${UBUNTU_ROOTFS}/usr/bin/qemu-aarch64-static ]; then
         cp /usr/bin/qemu-aarch64-static ${UBUNTU_ROOTFS}/usr/bin
     fi
 
