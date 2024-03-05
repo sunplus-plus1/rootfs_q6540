@@ -30,7 +30,7 @@ if [ ! -f $PART_FLAG ];then
 	ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
 	echo "START_PART_NUM=$ST_PART_NUM"
 
-	if [ $START_PART_NUM -ne 2 ]
+	if [ $START_PART_NUM -ne 2 ];then
 		echo "Not SD card rootfs partition, it's not necessary to do extend rootfs partition."
 		touch $PART_FLAG
 		exit 1
