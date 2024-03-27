@@ -30,7 +30,7 @@ if [ ! -f $PART_FLAG ];then
 	ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
 	echo "START_PART_NUM=$ST_PART_NUM"
 
-	if [ $START_PART_NUM -ne 2 ];then
+	if [ $ST_PART_NUM -ne 2 ];then
 		echo "Not SD card rootfs partition, it's not necessary to do extend rootfs partition."
 		touch $PART_FLAG
 		exit 1
@@ -39,13 +39,14 @@ if [ ! -f $PART_FLAG ];then
 	PART_START=$(parted $ROOT_DEV -ms unit s p | grep "^${ST_PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
 	echo "PART_START_SECTOR=$PART_START sector"
 
-	PART_START=$(fdisk -lu $ROOT_DEV | grep "$RESIZE_PART"|awk '{print $2}'|tr -cd "[0-9]")
-	echo "$RESIZE_PART start sector=$PART_START sector"
+	#PART_START=$(fdisk -lu $ROOT_DEV | grep "$RESIZE_PART"|awk '{print $2}'|tr -cd "[0-9]")
+	#echo "$RESIZE_PART start sector=$PART_START sector"
 
 	### Extend to full size
 	DEV_TOTAL_SIZE=$(fdisk -lu $ROOT_DEV | grep "Disk $ROOT_DEV:"|awk '{print $5}'|tr -cd "[0-9]")
 	echo "$ROOT_DEV total size=$DEV_TOTAL_SIZE bytes"
-	DEV_TOTAL_SIZE=$(awk -v x=$DEV_TOTAL_SIZE -v y=512 -v z=8 'BEGIN{printf "%d\n",(x/y)-z}')
+	### 1 sector = 0.5KBytes, to reserve 10MB, z=20480
+	DEV_TOTAL_SIZE=$(awk -v x=$DEV_TOTAL_SIZE -v y=512 -v z=20480 'BEGIN{printf "%d\n",(x/y)-z}')
 	echo "Want to extend $RESIZE_PART end sector to be $ROOT_DEV total size=$DEV_TOTAL_SIZE sectors"
 	PART_END=$DEV_TOTAL_SIZE
 	### Extend to $SIZE GByte size
