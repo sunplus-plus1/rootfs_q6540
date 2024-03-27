@@ -33,7 +33,7 @@ if [ ! -f $PART_FLAG ];then
 	if [ $ST_PART_NUM -ne 2 ];then
 		echo "Not SD card rootfs partition, it's not necessary to do extend rootfs partition."
 		touch $PART_FLAG
-		exit 1
+		exit 0
 	fi
 
 	PART_START=$(parted $ROOT_DEV -ms unit s p | grep "^${ST_PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
