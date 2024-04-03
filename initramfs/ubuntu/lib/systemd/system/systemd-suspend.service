@@ -16,5 +16,5 @@ After=sleep.target
 
 [Service]
 Type=oneshot
-ExecStartPre=/usr/sbin/ifconfig wlan0 down
+ExecStartPre=/bin/sh -ec '[ -d /sys/class/net/wlan0 ] && /usr/sbin/ip link set down wlan0'
 ExecStart=/lib/systemd/systemd-sleep suspend
