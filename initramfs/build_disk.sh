@@ -116,45 +116,15 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
 		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
 		cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
 	fi
-
-	# ADD systemd rc-local.service
-	FILE_RC_LOCAL_SERVICE="${DISKOUT}/etc/systemd/system/rc-local.service"
-	if [ -d ${DISKOUT}/etc/systemd/system ]; then
-		cat <<EOF > ${FILE_RC_LOCAL_SERVICE}
-[Unit]
-  Description=/etc/rc.local Compatibility
-  ConditionPathExists=/etc/rc.local
-
-[Service]
-  Type=forking
-  ExecStart=/etc/rc.local start
-  TimeoutSec=0
-  StandardOutput=tty
-  RemainAfterExit=yes
-  SysVStartPriority=99
-
-[Install]
-  WantedBy=multi-user.target
-EOF
-	fi
-
-	# Copy rc.local file to /etc of rootfs, this file is used for systemd rc-local.service.
-	# Action within this file:
-	# 1. Do CM4-REMOTEPROC
-	# 2. Change NPU(galcore) device file attribute
-	# 3. Extend rootfs partition and resize partition base on disk size limitation.
-	cp ubuntu/etc/rc.local ${DISKOUT}/etc
-	# Copy systemd-suspend.service file to /lib/systemd/system of rootfs, this file is used for systemd suspend.service.
-	# File is patched for AP6256 wifi suspend issue. That does "/usr/sbin/ifconfig wlan0 down" before system suspend.
-	cp ubuntu/lib/systemd/system/systemd-suspend.service ${DISKOUT}/lib/systemd/system
-
-	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
-	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
-	if [ -d ${DISKOUT}/etc/modprobe.d ]; then
-		echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-	fi
 	if [ -d prebuilt/udev ]; then
 		cp -av prebuilt/udev/lib/udev/* $DISKOUT/lib/udev
+	fi
+	ls ubuntu/common/ | grep -v README.md | xargs -i cp -av ubuntu/common/{} $DISKOUT
+	if [ -d ubuntu/${ROOTFS_CONTENT}/disk-private ]; then
+		cp -av ubuntu/${ROOTFS_CONTENT}/disk-private/* $DISKOUT
+	fi
+	if [ -x ubuntu/${ROOTFS_CONTENT}/build_disk_private.sh ]; then
+		ubuntu/${ROOTFS_CONTENT}/build_disk_private.sh
 	fi
 	exit 0
 else
