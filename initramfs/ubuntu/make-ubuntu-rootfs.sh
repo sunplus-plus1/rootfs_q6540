@@ -28,7 +28,8 @@ deb ${UBUNTU_APT_SOURCE_URL}/ubuntu-ports/ ${UBUNTU_CODENAME}-updates main restr
 UBUNTU_APT_SOURCE_RESTORE_FROM_BACKUP='true'
 UBUNTU_APT_SOURCES_LIST_FILE="${UBUNTU_ROOTFS}/etc/apt/sources.list"
 UBUNTU_SERVER_PACKAGES="ubuntu-standard ubuntu-minimal ubuntu-server \
-curl net-tools iputils-ping net-tools network-manager openssh-server
+curl net-tools iputils-ping net-tools network-manager openssh-server \
+xterm \
 "
 UBUNTU_MATE_PACKAGES="\
 ubuntu-standard ubuntu-minimal ubuntu-mate-desktop \
@@ -144,6 +145,7 @@ rootfs_clean()
     rm -rf ${UBUNTU_ROOTFS}/var/lib/dbus/machine-id
     rm -rf ${UBUNTU_ROOTFS}/var/lib/apt/lists
     rm -rf ${UBUNTU_ROOTFS}/tmp/*
+    rm -rf ${UBUNTU_ROOTFS}/run/*
     rm -rf ${UBUNTU_ROOTFS}/root/.cache
     rm -rf ${UBUNTU_ROOTFS}/usr/bin/qemu-aarch64-static
     if [ "${UBUNTU_APT_SOURCE_RESTORE_FROM_BACKUP}" == "true" ]; then
