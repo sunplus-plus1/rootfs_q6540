@@ -119,7 +119,7 @@ rootfs_config()
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "adduser $DEFAULT_USER --gecos \"\" --disabled-password"
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "echo \"${DEFAULT_USER}:${DEFAULT_PASSWORD}\"|chpasswd"
             fi
-            chroot ${UBUNTU_ROOTFS} /bin/bash -c "usermod -aG adm,cdrom,sudo,dip,plugdev $DEFAULT_USER"
+            chroot ${UBUNTU_ROOTFS} /bin/bash -c "usermod -aG adm,cdrom,sudo,dip,plugdev,audio,vedio $DEFAULT_USER"
             if [ "$UBUNTU_TYPE" == "mate" ] || [ "$UBUNTU_TYPE" == "xfce" ]; then
                 chroot ${UBUNTU_ROOTFS} /bin/bash -c "usermod -aG lpadmin $DEFAULT_USER"
             fi
