@@ -158,21 +158,34 @@ rootfs_clean()
 rootfs_attr()
 {
     cd ${UBUNTU_ROOTFS}
-    find ./* ! -type l  -printf '%#m:%U:%G:%p\n' > ../${UBUNTU_ROOTFS}-attr.list
+    find ./* ! -type l  -printf '%#m:%U:%G:%p\n' > $1
     cd - > /dev/null
     chmod 0755 ${UBUNTU_ROOTFS}/var/lib/snapd/void
 }
 
 rootfs_output()
 {
-    echo "Compressing $UBUNTU_ROOTFS.tar.gz"
+    output="ubuntu-${UBUNTU_TYPE}-${UBUNTU_RELEASE}"
+    title="Ubuntu ${UBUNTU_TYPE} ${UBUNTU_RELEASE}"
+    suffix='.tar.gz'
+    archive="${UBUNTU_ROOTFS}${suffix}"
+
+    mkdir -p $output
+    rootfs_attr $(realpath $output)/${archive::-${#suffix}}-attr.list
+
+    echo "Compressing $archive"
     if [ -x /usr/bin/pv ]; then
         tar cf - $UBUNTU_ROOTFS --numeric-owner | \
             pv -prb -s $(du -sb $UBUNTU_ROOTFS | awk '{print $1}') | \
-            gzip -9 > ${UBUNTU_ROOTFS}.tar.gz
+            gzip -9 > ${output}/${archive}
     else
-        tar --numeric-owner -czf ${UBUNTU_ROOTFS}.tar.gz ${UBUNTU_ROOTFS}
+        tar --numeric-owner -czf ${output}/${archive} $UBUNTU_ROOTFS
     fi
+
+    echo "ROOTFS_TYPE=ubuntu" > ${output}/menu.config
+    echo "ROOTFS_TITLE=$title" >> ${output}/menu.config
+
+    echo "Output directory: $output"
 }
 
 rootfs_signal()
@@ -192,7 +205,6 @@ main()
     rootfs_config
     rootfs_clean
     rootfs_umount
-    rootfs_attr
     rootfs_output
 }
 
