@@ -88,43 +88,77 @@ if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		cp -av prebuilt/udev/* $DISKOUT
 	fi
 	exit 0
-elif [ "${ROOTFS_CONTENT:0:6}" = "ubuntu" ]; then
+elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ "$ARCH" != "arm64" ]; then
 		exit 1
 	fi
 
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
-		. ${DISKOUT}/etc/lsb-release
-		if [ "${DISTRIB_ID} == Ubuntu" ]; then
+		DISTRIB_ID=$(grep '^DISTRIB_ID=' "${DISKOUT}/etc/lsb-release" | awk -F '=' '{print $2}')
+		if [ "${DISTRIB_ID}" = "Ubuntu" ]; then
 			exit 0
 		fi
-		rm -rf ${DISKOUT}
+		rm -rf "${DISKOUT}"
 	fi
 
-	mkdir -p ${DISKOUT}
-	echo "Uncompressing ${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz"
-	if [ -x /usr/bin/pv ]; then
-		pv -prb ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
+	ROOTFS_CONTENT=${ROOTFS_CONTENT:7}
+	rootfs_common_dir=$(realpath ubuntu/common)
+	rootfs_src_dir=$(realpath ubuntu/${ROOTFS_CONTENT%%:*})
+	rootfs_archive=$(echo -n "$ROOTFS_CONTENT" | awk -F ':' '{print $2}')
+	if [ -z "${rootfs_archive}" ]; then
+		suffix='.tar.gz'
+		find_archive="find ${rootfs_src_dir}/ -name '*$suffix*' | head -n 1 | sed \"s/$suffix.*//\" | xargs basename"
+		rootfs_name=$(eval "$find_archive")
+		if [ -n "${rootfs_name}" ]; then
+			rootfs_archive="${rootfs_name}${suffix}"
+		else
+			suffix=''
+		fi
 	else
-		cat ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}.tar.gz* | tar -xzf - -C ${DISKOUT} --strip-components 1
-        fi
-	mkdir -p .tmp
-	ln -sf ../ubuntu/${ROOTFS_CONTENT}/${ROOTFS_CONTENT}-rootfs-${ARCH}-attr.list .tmp/attr.list
+		suffix=${rootfs_archive:0-7}
+		rootfs_name=${rootfs_archive::-${#suffix}}
+	fi
+	if [ "$suffix" = ".tar.gz" ]; then
+		tar_cmd='tar --strip-components 1 -xzf'
+	else
+		echo "Error: Unable to found rootfs archive files in ${rootfs_src_dir} folder"
+		exit 1
+	fi
+	rootfs_attr_file=${rootfs_name}-attr.list
+	if [ ! -f "${rootfs_src_dir}/${rootfs_attr_file}" ]; then
+		echo "Error: Unable to found ${rootfs_attr_file} file in ${rootfs_src_dir} folder"
+		exit 1
+	fi
 
-	cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+	mkdir -p "${DISKOUT}"
+	echo "Uncompressing ${rootfs_archive}"
+	if [ -x /usr/bin/pv ]; then
+		pv -prb "${rootfs_src_dir}/${rootfs_archive}"* | $tar_cmd - -C "${DISKOUT}"
+	else
+		cat "${rootfs_src_dir}/${rootfs_archive}"* | $tar_cmd - -C "${DISKOUT}"
+        fi
+	if [ $? -ne 0 ]; then
+		exit 1
+	fi
+
+	mkdir -p .tmp
+	ln -srf "${rootfs_src_dir}/${rootfs_attr_file}" .tmp/attr.list
+
+	cp -R "${DISKZ}lib/firmware/" "${DISKLIB}"
 	if [ -d prebuilt/vip9000sdk ]; then
-		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
-		cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
+		cp prebuilt/vip9000sdk/drivers/* "${DISKLIB}"
+		cp -R prebuilt/vip9000sdk/include/* "${DISKOUT}/usr/include"
 	fi
 	if [ -d prebuilt/udev ]; then
-		cp -av prebuilt/udev/lib/udev/* $DISKOUT/lib/udev
+		cp -av prebuilt/udev/lib/udev/* "$DISKOUT/lib/udev"
 	fi
-	ls ubuntu/common/ | grep -v README.md | xargs -i cp -av ubuntu/common/{} $DISKOUT
-	if [ -d ubuntu/${ROOTFS_CONTENT}/disk-private ]; then
-		cp -av ubuntu/${ROOTFS_CONTENT}/disk-private/* $DISKOUT
+
+	find ${rootfs_common_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_common_dir}/ -exec cp -av {} "$DISKOUT" \;
+	if [ -d "${rootfs_src_dir}/disk-private" ]; then
+		cp -av "${rootfs_src_dir}/disk-private/"* "$DISKOUT"
 	fi
-	if [ -x ubuntu/${ROOTFS_CONTENT}/build_disk_private.sh ]; then
-		ubuntu/${ROOTFS_CONTENT}/build_disk_private.sh
+	if [ -x "${rootfs_src_dir}/build_disk_private.sh" ]; then
+		"${rootfs_src_dir}/build_disk_private.sh"
 	fi
 	exit 0
 else
