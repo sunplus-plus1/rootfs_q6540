@@ -1,0 +1,136 @@
+/****************************************************************************
+*
+*    Copyright 2017 - 2024 Vivante Corporation, Santa Clara, California.
+*    All Rights Reserved.
+*
+*    Permission is hereby granted, free of charge, to any person obtaining
+*    a copy of this software and associated documentation files (the
+*    'Software'), to deal in the Software without restriction, including
+*    without limitation the rights to use, copy, modify, merge, publish,
+*    distribute, sub license, and/or sell copies of the Software, and to
+*    permit persons to whom the Software is furnished to do so, subject
+*    to the following conditions:
+*
+*    The above copyright notice and this permission notice (including the
+*    next paragraph) shall be included in all copies or substantial
+*    portions of the Software.
+*
+*    THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
+*    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+*    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.
+*    IN NO EVENT SHALL VIVANTE AND/OR ITS SUPPLIERS BE LIABLE FOR ANY
+*    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+*    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+*    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*
+*****************************************************************************/
+
+#ifndef _VX_ENV_H_
+#define _VX_ENV_H_
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+typedef enum _vx_graph_attribute_env_type_e
+{
+    VX_ENV_NONE = VX_ATTRIBUTE_BASE(VX_ID_VIVANTE, VX_TYPE_ENV) + 0x0,
+
+    /* basic function */
+    VX_ENV_ENABLE_SHADER,
+    VX_ENV_ENABLE_STREAM_PROCESSOR,
+    VX_ENV_ENABLE_NN_TRANSPOSE,
+    VX_ENV_ENABLE_NN_TRANSPOSE_PHASE2,
+    VX_ENV_SWTILING_PHASE1,
+
+    /* sub function */
+    VX_ENV_ENABLE_LARGE_MODEL_OPT,
+    VX_ENV_ENABLE_MULTI_CORE_OPT,
+    VX_ENV_ENABLE_NN_COMMAND_LOOP,
+    VX_ENV_ENABLE_SOFTMAX_SP_INTERMEDIATES_FP16,
+    VX_ENV_ENABLE_NN_TILE_ACCESS,
+    VX_ENV_ENABLE_ZDP_OPT,
+    VX_ENV_ENABLE_NN_1X1_TO_1XN,
+    VX_ENV_ENABLE_BYPASS_KERNEL_HEADER_READ,
+    VX_ENV_ENABLE_SPLIT_X_AMONG_CLUSTER,
+    VX_ENV_ENABLE_COEF_BYPASS,
+    VX_ENV_ENABLE_SPLIT_MLP,
+    VX_ENV_ENABLE_UNEQUAL_SPLIT,
+    VX_ENV_ENABLE_MULTIVIP_CONFIG_FOR_AUTOENCODER,
+    VX_ENV_ENABLE_SWTILING_ORDER_AVERAGE,
+    VX_ENV_DRIVER_ARCH_PARAMETER,
+    VX_ENV_SWTILING_ORDER_OPTIMIZED,
+    VX_ENV_NT_PERMUTE_OPT_LEVEL,
+
+    /* debug and log function */
+    VX_ENV_ENABLE_SHOW_COMMAND,
+    VX_ENV_ENABLE_NN_EXT_SHOW_PERF,
+    VX_ENV_ENABLE_OPERATION_TOPOLOGY_DUMP,
+    VX_ENV_ENABLE_NN_LAYER_DUMP,
+    VX_ENV_ENABLE_NN_LAYER_DUMP_QTENSOR,
+    VX_ENV_ENABLE_NN_COMMAND_DUMP,
+    VX_ENV_ENABLE_BLOCK_DUMP,
+    VX_ENV_ENABLE_ONLY_DUMP_GRAPH_OUTPUT,
+    VX_ENV_ENABLE_PRINT_SP_SPLIT,
+    VX_ENV_CNN_PERF,
+    VX_ENV_COLLECT_PERF_TYPE,
+
+    /* hardware performance function */
+    VX_ENV_NN_EXT_DDR_READ_BW_LIMIT,
+    VX_ENV_NN_EXT_DDR_WRITE_BW_LIMIT,
+    VX_ENV_NN_EXT_DDR_TOTAL_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_SRAM_READ_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_SRAM_WRITE_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_SRAM_TOTAL_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_BUS_READ_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_BUS_WRITE_BW_LIMIT,
+    VX_ENV_NN_EXT_AXI_BUS_TOTAL_BW_LIMIT,
+    VX_ENV_DDR_LATENCY,
+    VX_ENV_AXI_SRAM_LATENCY,
+    VX_ENV_DDR_READ_BW64B_BURST,
+    VX_ENV_DDR_READ_BW128B_BURST,
+    VX_ENV_DDR_READ_BW256B_BURST,
+    VX_ENV_DDR_MASKWRITE_BW64B_BURST,
+    VX_ENV_DDR_MASKWRITE_BW128B_BURST,
+    VX_ENV_DDR_MASKWRITE_BW256B_BURST,
+    VX_ENV_DDR_NON_MASKWRITE_BW64B_BURST,
+    VX_ENV_DDR_NON_MASKWRITE_BW128B_BURST,
+    VX_ENV_DDR_NON_MASKWRITE_BW256B_BURST,
+
+    /* DMA setting */
+    VX_ENV_SET_DMA_MODE,
+    VX_ENV_SET_DMA_SYNC_ONLY_MODE,
+    VX_ENV_DMA_OCM_BYPASS,
+    VX_ENV_ENABLE_READ_REF_TO_DDR,
+    VX_ENV_SET_DMA_FRAME_MODE,
+    VX_ENV_SET_ISP_READ_WRITE_BUFFER,
+    VX_ENV_SET_DMA_CHANNEL_0_BUFFER_HEIGHT,
+    VX_ENV_SET_DMA_CHANNEL_1_BUFFER_HEIGHT,
+    VX_ENV_SET_DMA_CHANNEL_2_BUFFER_HEIGHT,
+    VX_ENV_SET_DMA_CHANNEL_3_BUFFER_HEIGHT,
+    VX_ENV_SET_DMA_CHANNEL_4_BUFFER_HEIGHT,
+    VX_ENV_SET_DMA6_READ_SUBTENSOR_HEIGHT,
+    VX_ENV_SET_DMA7_WRITE_SUBTENSOR_HEIGHT,
+    VX_ENV_SET_DMA_READ_COMMIT,
+
+    VX_ENV_STRING_START, /* not a real env */
+
+    /* graph and operation string configuration */
+    VX_ENV_GRAPH_TRANSFORM_CONFIG,
+    VX_ENV_GROUPS_CONFIG,
+    VX_ENV_BLOCKS_CONFIG,
+    VX_ENV_MULTIVIP_NN_CONFIG,
+    VX_ENV_SPLIT_NODE_CONFIG,
+    VX_ENV_OP_EXECUTE_ORDER_CONFIG,
+    VX_ENV_OP_EXECUTE_ORDER_CONFIG_FILE,
+    VX_ENV_NN_LAYER_DUMP_CONFIG,
+
+    VX_ENV_ALL,
+}
+vx_graph_attribute_env_type_e;
+
+#ifdef  __cplusplus
+}
+#endif
+
+#endif
