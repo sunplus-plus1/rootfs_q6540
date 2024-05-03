@@ -31,7 +31,8 @@ if [ ! -f $PART_FLAG ];then
 	echo "ST_PART_NUM=$ST_PART_NUM"
 
 	if [ $ST_PART_NUM -ne 2 ];then
-		echo "Not the SD card rootfs partition."
+		echo "Not the SD card rootfs partition, just resize2fs rootfs to max disk capacity"
+		resize2fs $RESIZE_PART
 		touch $PART_FLAG
 		exit 0
 	fi
