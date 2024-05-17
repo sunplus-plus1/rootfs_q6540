@@ -73,7 +73,11 @@ typedef struct _vsi_nn_runtime_option_t
     int32_t enable_shader;
     int32_t enable_opcheck;
     int32_t enable_concat_optimize;
-    int32_t enable_asymi8_to_u8;
+    /*  0: disable convert int8 to uint8
+     *  1: enable convert asymm int8 to asymm uint8
+     *  2: enable convert both asymm and sym int8 to asymm uint8
+     */
+    int32_t enable_i8_to_u8;
     int32_t enable_dataconvert_optimize;
     int32_t enable_stream_processor;
     int32_t enable_rgb88_planar_nhwc;
