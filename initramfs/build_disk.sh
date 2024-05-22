@@ -273,9 +273,9 @@ if [ "$ARCH" = "arm64" ]; then
 		cp -av prebuilt/arm64/* $DISKOUT
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
 	fi
-	if [ -d prebuilt/vip9000sdk ]; then
-		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB64}
-	fi
+#	if [ -d prebuilt/vip9000sdk ]; then
+#		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB64}
+#	fi
 	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
 	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 	if [ ! -d ${DISKOUT}/etc/modprobe.d ]; then
