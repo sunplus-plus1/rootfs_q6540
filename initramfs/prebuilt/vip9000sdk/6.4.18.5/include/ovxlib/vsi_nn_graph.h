@@ -821,6 +821,16 @@ OVXLIB_API vsi_status vsi_nn_SetGraphTransformOption
     size_t size
     );
 
+OVXLIB_API char* vsi_nn_GenerateGraphJson
+    (
+    vsi_nn_graph_t* graph
+    );
+
+OVXLIB_API vsi_status vsi_nn_ReleaseGraphJson
+    (
+    char* json
+    );
+
 /**
  * graph shape inference
  *
