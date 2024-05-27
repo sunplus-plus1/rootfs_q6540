@@ -17,7 +17,51 @@ if [ "$1" = "v5" ]; then
 	V7_BUILD=0
 fi
 
-if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
+
+function cp_q654_files() {
+    cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+    if [ -d prebuilt/vip9000sdk ]; then
+        mkdir -p ${DISKOUT}/usr/include
+        cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
+        cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
+    fi
+    cp -av prebuilt/resize2fs/v8/* $DISKOUT
+    check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
+    if [ "${check_remoteproc}" == "" ]; then
+        echo '
+        # ADD REMOTEPROC
+        if [ -d /sys/class/remoteproc/remoteproc0 ]; then
+            if [ -f /lib/firmware/firmware ]; then
+                echo "Boot CM4 firmware by remoteproc"
+                echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+                echo start > /sys/class/remoteproc/remoteproc0/state
+            fi
+        fi' >> ${DISKOUT}/etc/profile
+    fi
+    # ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
+    FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
+	mkdir -p ${DISKOUT}/etc/modprobe.d
+    if [ -d ${DISKOUT}/etc/modprobe.d ]; then
+        echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
+
+        # for VC8000 V4L2 vsi daemon
+        cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
+    fi
+    mkdir -p ${DISKOUT}/etc/init.d
+	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
+	if [ -d prebuilt/udev ]; then
+		cp -av prebuilt/udev/* $DISKOUT
+	fi
+}
+
+if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
+    
+    if [ -f "${DISKLIB}/os-release" ]; then
+        cp_q654_files
+    fi
+    exit 0
+
+elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 	tar_rootfs=0
 
 	if [ ! -d ${DISKOUT} ]; then
