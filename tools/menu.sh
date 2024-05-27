@@ -13,6 +13,7 @@ menu_rootfs_title_num()
 	# <priority>:<type>:<title>:[folder]:[archive]\n
 	MENU_ROOTFS_TITLES='1:BUSYBOX:BusyBox 1.31.1::\n'
 	MENU_ROOTFS_TITLES+='999:YOCTO:Yocto::\n'
+	MENU_ROOTFS_TITLES+='1999:BUILDROOT:Buildroot::\n'
 
 	configs=$(find $search_dirs -maxdepth 4 -type f -name 'menu.config')
 	for config in $configs
