@@ -20,11 +20,11 @@ fi
 
 function cp_q654_files() {
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-    if [ -d prebuilt/vip9000sdk ]; then
-        mkdir -p ${DISKOUT}/usr/include
-        cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
-        cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
-    fi
+#    if [ -d prebuilt/vip9000sdk ]; then
+#        mkdir -p ${DISKOUT}/usr/include
+#        cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
+#        cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
+#    fi
     cp -av prebuilt/resize2fs/v8/* $DISKOUT
     check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
     if [ "${check_remoteproc}" == "" ]; then
