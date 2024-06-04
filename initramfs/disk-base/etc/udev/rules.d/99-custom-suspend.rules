@@ -1,0 +1,2 @@
+ACTION=="online", SUBSYSTEM=="remoteproc", ENV{DEVICE}=="wlan0", RUN+="/etc/rc.suspend resume"
+ACTION=="offline", SUBSYSTEM=="remoteproc", ENV{DEVICE}=="wlan0", RUN+="/etc/rc.suspend suspend"

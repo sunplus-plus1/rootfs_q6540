@@ -126,6 +126,10 @@ elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		# for VC8000 V4L2 vsi daemon
 		cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
 		fi
+
+		# suspend
+		cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
+		cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
 	fi
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	if [ -d prebuilt/udev ]; then
@@ -204,6 +208,11 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ -x "${rootfs_src_dir}/build_disk_private.sh" ]; then
 		"${rootfs_src_dir}/build_disk_private.sh"
 	fi
+
+	# suspend
+	cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
+	cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
+
 	exit 0
 else
 	if [ ! -f ${DISKOUT}/init ]; then

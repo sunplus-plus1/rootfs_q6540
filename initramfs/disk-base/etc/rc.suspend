@@ -1,0 +1,25 @@
+#!/bin/sh
+
+WLAN0_FILE=/sys/class/net/wlan0/device/rfkill/rfkill1/state
+
+case "$1" in
+  suspend)
+    if [ -f $WLAN0_FILE ]; then
+        #ifconfig wlan0 down
+        echo 0 | tee $WLAN0_FILE 
+        if [ $? -eq 0 ]; then
+           echo mem > /sys/power/state
+        fi
+    else
+        echo mem > /sys/power/state
+    fi
+    ;;
+  resume)
+   if [ -f $WLAN0_FILE ]; then
+      #ifconfig wlan0 up
+      echo 1 | tee $WLAN0_FILE
+   fi
+    ;;
+  *)
+    ;;
+esac
