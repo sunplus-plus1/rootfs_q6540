@@ -61,6 +61,15 @@ if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     fi
     exit 0
 
+elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
+    #suspend/resume disable wlan0.
+    if [ -d ${DISKOUT} ]; then
+        if [ ! -f "${DISKOUT}/bin/suspend_closewifi" ]; then
+            cp -rf prebuilt/suspend/suspend_closewifi ${DISKOUT}/bin
+            sed -i '/\/bin\/echo "End of \$0"/ { x; s|^|/bin/suspend_closewifi \&\n|; G}' ${DISKOUT}/etc/init.d/rcS
+        fi
+    fi
+
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 	tar_rootfs=0
 
