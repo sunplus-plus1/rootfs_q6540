@@ -20,12 +20,6 @@ fi
 
 function cp_q654_files() {
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-#    if [ -d prebuilt/vip9000sdk ]; then
-#        mkdir -p ${DISKOUT}/usr/include
-#        cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
-#        cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
-#    fi
-    cp -av prebuilt/resize2fs/v8/* $DISKOUT
     check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
     if [ "${check_remoteproc}" == "" ]; then
         echo '
@@ -40,17 +34,18 @@ function cp_q654_files() {
     fi
     # ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
     FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
-	mkdir -p ${DISKOUT}/etc/modprobe.d
-    if [ -d ${DISKOUT}/etc/modprobe.d ]; then
-        echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
+	if [ ! -d ${DISKOUT}/etc/modprobe.d ]; then
+		mkdir -p ${DISKOUT}/etc/modprobe.d
+	fi
+    echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
 
-        # for VC8000 V4L2 vsi daemon
-        cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
-    fi
+    # for VC8000 V4L2 vsi daemon
+    cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
+
     mkdir -p ${DISKOUT}/etc/init.d
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	if [ -d prebuilt/udev ]; then
-		cp -av prebuilt/udev/* $DISKOUT
+		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
 }
 
@@ -90,12 +85,6 @@ elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 	if [ ${tar_rootfs} -eq 1 ]; then
 		tar jxvf rootfs.tar.bz2 &>/dev/null
 		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-		if [ "$ARCH" = "arm64" ]; then
-			if [ -d prebuilt/vip9000sdk ]; then
-				cp prebuilt/vip9000sdk/drivers/* ${DISKLIB}
-				cp -R prebuilt/vip9000sdk/include/* ${DISKOUT}/usr/include
-			fi
-		fi
 	fi
 
 	if [ "$ARCH" != "arm64" ]; then
@@ -131,18 +120,16 @@ elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 		if [ -d ${DISKOUT}/etc/modprobe.d ]; then
 			echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-
+		fi
 		# for VC8000 V4L2 vsi daemon
 		cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
-		fi
-
 		# suspend
 		cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
 		cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
 	fi
 	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
 	if [ -d prebuilt/udev ]; then
-		cp -av prebuilt/udev/* $DISKOUT
+		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
 	exit 0
 elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
@@ -202,10 +189,6 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	ln -srf "${rootfs_src_dir}/${rootfs_attr_file}" .tmp/attr.list
 
 	cp -R "${DISKZ}lib/firmware/" "${DISKLIB}"
-	if [ -d prebuilt/vip9000sdk ]; then
-		cp prebuilt/vip9000sdk/drivers/* "${DISKLIB}"
-		cp -R prebuilt/vip9000sdk/include/* "${DISKOUT}/usr/include"
-	fi
 	if [ -d prebuilt/udev ]; then
 		cp -av prebuilt/udev/lib/udev/* "$DISKOUT/lib/udev"
 	fi
@@ -335,9 +318,6 @@ if [ "$ARCH" = "arm64" ]; then
 		cp -av prebuilt/arm64/* $DISKOUT
 		cp -av prebuilt/resize2fs/v8/* $DISKOUT
 	fi
-#	if [ -d prebuilt/vip9000sdk ]; then
-#		cp prebuilt/vip9000sdk/drivers/* ${DISKLIB64}
-#	fi
 	# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
 	FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 	if [ ! -d ${DISKOUT}/etc/modprobe.d ]; then
