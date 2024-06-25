@@ -221,48 +221,22 @@ if [ "$2" = "update" ]; then
 	UPDATE=1
 fi
 
-# Toolchain
-if [ "$ARCH" = "arm64" ]; then
-	DISK_LIB="lib-v7hf lib-arm64"
-elif [ $V7_BUILD -eq 1 ]; then
-	DISK_LIB=lib-v7hf
-else
-	DISK_LIB=lib-v5
-fi
-
 if [ -z "${CROSS}" ]; then
 	echo "CROSS=... is undefined"
 	exit 1;
 fi;
 
-function abspath() {
-	# generate absolute path from relative path
-	# $1     : relative filename
-	# return : absolute path
-	if [ -d "$1" ]; then
-		# dir
-		(cd "$1"; pwd)
-	elif [ -f "$1" ]; then
-		# file
-		if [[ $1 = /* ]]; then
-			echo "$1"
-		elif [[ $1 == */* ]]; then
-			echo "$(cd "${1%/*}"; pwd)/${1##*/}"
-		else
-			echo "$(pwd)/$1"
-		fi
-	fi
-}
-
 # sub builds need absolute path
-CROSS=`abspath ${CROSS}gcc`
-echo $CROSS
-${CROSS} --version 2>/dev/null
-if [ $? -ne 0 ]; then
-	echo "Not found gcc : $CROSS"
+CROSS_PATH=$(realpath $(dirname $CROSS)/..)
+CROSS_PREFIX=$(basename $CROSS)
+CROSS_GCC=${CROSS_PATH}/bin/${CROSS_PREFIX}gcc
+CROSS_STRIP=${CROSS_PATH}/bin/${CROSS_PREFIX}strip
+CROSS_COMPILE=${CROSS_PATH}/bin/${CROSS_PREFIX}
+CROSS_MACHINE=$($CROSS_GCC -dumpmachine)
+if ! $CROSS_GCC --version 2>/dev/null && ! $CROSS_GCC -v 2>/dev/null; then
+	echo "Not found gcc : $CROSS_GCC"
 	exit 1
 fi
-CROSS=${CROSS%gcc}
 
 # Busybox
 BBX=busybox-1.31.1
@@ -290,7 +264,38 @@ else
 	echo "Prepare new disk base"
 	rm -rf $DISKOUT
 	cp -a $DISKZ $DISKOUT
-	for d in ${DISK_LIB}; do cp -a $d/* $DISKOUT/; done
+
+	if [ -d $CROSS_PATH/$CROSS_MACHINE/libc/lib ]; then
+		mkdir -p $DISKOUT/lib
+		lib_install_dirs="$DISKOUT/lib"
+		cp -av $CROSS_PATH/$CROSS_MACHINE/libc/lib/*.so* $DISKOUT/lib
+	fi
+	if [ -d $CROSS_PATH/$CROSS_MACHINE/libc/usr/lib ]; then
+		mkdir -p $DISKOUT/usr/lib
+		lib_install_dirs+=" $DISKOUT/usr/lib"
+		cp -av $CROSS_PATH/$CROSS_MACHINE/libc/usr/lib/*.so* $DISKOUT/usr/lib
+	fi
+	if [ -d $CROSS_PATH/$CROSS_MACHINE/libc/lib64 ]; then
+		mkdir -p $DISKOUT/lib64
+		lib_install_dirs+=" $DISKOUT/lib64"
+		cp -av $CROSS_PATH/$CROSS_MACHINE/libc/lib64/*.so* $DISKOUT/lib64
+	fi
+	if [ -d $CROSS_PATH/$CROSS_MACHINE/libc/usr/lib64 ]; then
+		mkdir -p $DISKOUT/usr/lib64
+		lib_install_dirs+=" $DISKOUT/usr/lib64"
+		cp -av $CROSS_PATH/$CROSS_MACHINE/libc/usr/lib64/*.so* $DISKOUT/usr/lib64
+	fi
+	if [ "$STRIP" != "0" ]; then
+		for f in $(find $DISKOUT -type f)
+		do
+			mime_type=$(file -b --mime-type $f)
+			if [ "$mime_type" = "application/x-sharedlib" ] || [ "$mime_type" = "application/application/x-executable" ]; then
+				strip_files+=" $f"
+			fi
+		done
+		$CROSS_STRIP -p $strip_files
+	fi
+
 	cd $DISKOUT
 	mkdir -p proc sys mnt tmp var run
 	cd -
@@ -299,14 +304,15 @@ else
 	rm -rf $BBX
 	tar xf $BBXZ
 	cp -vf $BBXCFG $BBX/.config
+	for p in ../busybox/patches/*.patch; do patch -p1 -d $BBX < $p; done
 fi
 
 echo "Build busybox"
-echo make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT all
-make -C $BBX -j ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT all
+echo make -C $BBX -j4 ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE CONFIG_PREFIX=$DISKOUT all
+make -C $BBX -j ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE CONFIG_PREFIX=$DISKOUT all
 
 echo "Install busybox"
-cd $BBX && make -j ARCH=$ARCH CROSS_COMPILE=$CROSS CONFIG_PREFIX=$DISKOUT install
+cd $BBX && make -j ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE CONFIG_PREFIX=$DISKOUT install
 cd -
 size $BBX/busybox
 echo "Installed ($BBXCFG)"
