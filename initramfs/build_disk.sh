@@ -289,7 +289,9 @@ else
 		for f in $(find $DISKOUT -type f)
 		do
 			mime_type=$(file -b --mime-type $f)
-			if [ "$mime_type" = "application/x-sharedlib" ] || [ "$mime_type" = "application/application/x-executable" ]; then
+			if [ "$mime_type" = "application/x-sharedlib" ] ||
+			   [ "$mime_type" = "application/x-executable" ] ||
+			   [ "$mime_type" = "application/x-pie-executable" ]; then
 				strip_files+=" $f"
 			fi
 		done
