@@ -1,0 +1,221 @@
+diff -uNr ffmpeg-4.4.4/libavcodec/allcodecs.c ffmpeg-4.4.4.m/libavcodec/allcodecs.c
+--- ffmpeg-4.4.4/libavcodec/allcodecs.c	2023-04-13 02:01:50.000000000 +0800
++++ ffmpeg-4.4.4.m/libavcodec/allcodecs.c	2024-07-02 18:05:34.348448796 +0800
+@@ -835,6 +835,8 @@
+ extern AVCodec ff_vp9_qsv_decoder;
+ extern AVCodec ff_vp9_vaapi_encoder;
+ extern AVCodec ff_vp9_qsv_encoder;
++extern AVCodec ff_jpeg_v4l2m2m_encoder;
++extern AVCodec ff_jpeg_v4l2m2m_decoder;
+ 
+ // The iterate API is not usable with ossfuzz due to the excessive size of binaries created
+ #if CONFIG_OSSFUZZ
+diff -uNr ffmpeg-4.4.4/libavcodec/v4l2_fmt.c ffmpeg-4.4.4.m/libavcodec/v4l2_fmt.c
+--- ffmpeg-4.4.4/libavcodec/v4l2_fmt.c	2022-11-05 04:16:28.000000000 +0800
++++ ffmpeg-4.4.4.m/libavcodec/v4l2_fmt.c	2024-07-02 18:05:54.436332876 +0800
+@@ -51,7 +51,7 @@
+     { AV_FMT(YUV410P),     AV_CODEC(RAWVIDEO),    V4L2_FMT(YUV410) },
+     { AV_FMT(YUV410P),     AV_CODEC(RAWVIDEO),    V4L2_FMT(YVU410) },
+     { AV_FMT(NV12),        AV_CODEC(RAWVIDEO),    V4L2_FMT(NV12) },
+-    { AV_FMT(NONE),        AV_CODEC(MJPEG),       V4L2_FMT(MJPEG) },
++    //{ AV_FMT(NONE),        AV_CODEC(MJPEG),       V4L2_FMT(MJPEG) },
+     { AV_FMT(NONE),        AV_CODEC(MJPEG),       V4L2_FMT(JPEG) },
+ #ifdef V4L2_PIX_FMT_SRGGB8
+     { AV_FMT(BAYER_BGGR8), AV_CODEC(RAWVIDEO),    V4L2_FMT(SBGGR8) },
+diff -uNr ffmpeg-4.4.4/libavcodec/v4l2_m2m.c ffmpeg-4.4.4.m/libavcodec/v4l2_m2m.c
+--- ffmpeg-4.4.4/libavcodec/v4l2_m2m.c	2023-04-02 23:21:32.000000000 +0800
++++ ffmpeg-4.4.4.m/libavcodec/v4l2_m2m.c	2024-07-02 18:06:06.772275741 +0800
+@@ -149,6 +149,40 @@
+ 
+     ofmt = s->output.format;
+     cfmt = s->capture.format;
++
++    if (s->output.av_codec_id != AV_CODEC_ID_RAWVIDEO) {
++        if (V4L2_TYPE_IS_MULTIPLANAR(ofmt.type)) {
++            int mp_width = (ofmt.fmt.pix_mp.width + 15) / 16;
++            int mp_height = (ofmt.fmt.pix_mp.height + 15) / 16;
++            s->output.format.fmt.pix_mp.width = mp_width * 16;
++            s->output.format.fmt.pix_mp.height = mp_height * 16;
++       } else {
++            int mp_width = (ofmt.fmt.pix.width + 15) / 16;
++            int mp_height = (ofmt.fmt.pix.height + 15) / 16;
++            s->output.format.fmt.pix.width = mp_width * 16;
++            s->output.format.fmt.pix.height = mp_height * 16;
++       }
++
++       if (V4L2_TYPE_IS_MULTIPLANAR(cfmt.type)) {
++            int mp_width = (cfmt.fmt.pix_mp.width + 15) / 16;
++            int mp_height = (cfmt.fmt.pix_mp.height + 15) / 16;
++            s->capture.format.fmt.pix_mp.width = mp_width * 16;
++            s->capture.format.fmt.pix_mp.height = mp_height * 16;
++       } else {
++            int mp_width = (cfmt.fmt.pix.width + 15) / 16;
++            int mp_height = (cfmt.fmt.pix.height + 15) / 16;
++            s->capture.format.fmt.pix.width = mp_width * 16;
++            s->capture.format.fmt.pix.height = mp_height * 16;
++       }
++
++   }
++
++    av_log(log_ctx, AV_LOG_INFO, "s->avctx->width: %d, s->avctx->height: %d, s->avctx->coded_width: %d, s->avctx->coded_height: %d\n",
++                                 s->avctx->width, s->avctx->height, s->avctx->coded_width, s->avctx->coded_height);
++
++    av_log(log_ctx, AV_LOG_INFO, "output.width: %d, output.height: %d, capture.width: %d, capture.height: %d\n",
++                                 s->output.width, s->output.height, s->capture.width, s->capture.height);
++
+     av_log(log_ctx, AV_LOG_INFO, "requesting formats: output=%s capture=%s\n",
+                                  av_fourcc2str(V4L2_TYPE_IS_MULTIPLANAR(ofmt.type) ?
+                                                ofmt.fmt.pix_mp.pixelformat :
+@@ -157,24 +191,12 @@
+                                                cfmt.fmt.pix_mp.pixelformat :
+                                                cfmt.fmt.pix.pixelformat));
+ 
+-    ret = ff_v4l2_context_set_format(&s->output);
+-    if (ret) {
+-        av_log(log_ctx, AV_LOG_ERROR, "can't set v4l2 output format\n");
+-        goto error;
+-    }
+-
+     ret = ff_v4l2_context_set_format(&s->capture);
+     if (ret) {
+         av_log(log_ctx, AV_LOG_ERROR, "can't to set v4l2 capture format\n");
+         goto error;
+     }
+ 
+-    ret = ff_v4l2_context_init(&s->output);
+-    if (ret) {
+-        av_log(log_ctx, AV_LOG_ERROR, "no v4l2 output context's buffers\n");
+-        goto error;
+-    }
+-
+     /* decoder's buffers need to be updated at a later stage */
+     if (s->avctx && !av_codec_is_decoder(s->avctx->codec)) {
+         ret = ff_v4l2_context_init(&s->capture);
+@@ -184,6 +206,18 @@
+         }
+     }
+ 
++    ret = ff_v4l2_context_set_format(&s->output);
++    if (ret) {
++        av_log(log_ctx, AV_LOG_ERROR, "can't set v4l2 output format\n");
++        goto error;
++    }
++
++    ret = ff_v4l2_context_init(&s->output);
++    if (ret) {
++        av_log(log_ctx, AV_LOG_ERROR, "no v4l2 output context's buffers\n");
++        goto error;
++    }
++
+     return 0;
+ 
+ error:
+@@ -256,6 +290,8 @@
+     if (atomic_load(&s->refcount))
+         while(sem_wait(&s->refsync) == -1 && errno == EINTR);
+ 
++    av_log(log_ctx, AV_LOG_ERROR, "capture.streamon: %s, output.streamon: %s\n", s->capture.streamon ? "true" : "false", s->output.streamon ? "true" : "false");
++
+     ret = ff_v4l2_context_set_status(&s->output, VIDIOC_STREAMOFF);
+     if (ret) {
+         av_log(log_ctx, AV_LOG_ERROR, "output VIDIOC_STREAMOFF\n");
+@@ -288,24 +324,12 @@
+         goto error;
+     }
+ 
+-    ret = ff_v4l2_context_set_format(&s->output);
+-    if (ret) {
+-        av_log(log_ctx, AV_LOG_ERROR, "can't set v4l2 output format\n");
+-        goto error;
+-    }
+-
+     ret = ff_v4l2_context_set_format(&s->capture);
+     if (ret) {
+         av_log(log_ctx, AV_LOG_ERROR, "can't to set v4l2 capture format\n");
+         goto error;
+     }
+ 
+-    ret = ff_v4l2_context_init(&s->output);
+-    if (ret) {
+-        av_log(log_ctx, AV_LOG_ERROR, "no v4l2 output context's buffers\n");
+-        goto error;
+-    }
+-
+     /* decoder's buffers need to be updated at a later stage */
+     if (s->avctx && !av_codec_is_decoder(s->avctx->codec)) {
+         ret = ff_v4l2_context_init(&s->capture);
+@@ -315,6 +339,18 @@
+         }
+     }
+ 
++    ret = ff_v4l2_context_set_format(&s->output);
++    if (ret) {
++        av_log(log_ctx, AV_LOG_ERROR, "can't set v4l2 output format\n");
++        goto error;
++    }
++
++    ret = ff_v4l2_context_init(&s->output);
++    if (ret) {
++        av_log(log_ctx, AV_LOG_ERROR, "no v4l2 output context's buffers\n");
++        goto error;
++    }
++
+     return 0;
+ 
+ error:
+diff -uNr ffmpeg-4.4.4/libavcodec/v4l2_m2m_dec.c ffmpeg-4.4.4.m/libavcodec/v4l2_m2m_dec.c
+--- ffmpeg-4.4.4/libavcodec/v4l2_m2m_dec.c	2023-04-13 02:01:50.000000000 +0800
++++ ffmpeg-4.4.4.m/libavcodec/v4l2_m2m_dec.c	2024-07-02 18:06:13.325130126 +0800
+@@ -261,3 +261,4 @@
+ M2MDEC(vc1 ,  "VC1",   AV_CODEC_ID_VC1,        NULL);
+ M2MDEC(vp8,   "VP8",   AV_CODEC_ID_VP8,        NULL);
+ M2MDEC(vp9,   "VP9",   AV_CODEC_ID_VP9,        NULL);
++M2MDEC(jpeg,  "JPEG",  AV_CODEC_ID_MJPEG,      NULL);
+diff -uNr ffmpeg-4.4.4/libavcodec/v4l2_m2m_enc.c ffmpeg-4.4.4.m/libavcodec/v4l2_m2m_enc.c
+--- ffmpeg-4.4.4/libavcodec/v4l2_m2m_enc.c	2023-04-13 02:01:50.000000000 +0800
++++ ffmpeg-4.4.4.m/libavcodec/v4l2_m2m_enc.c	2024-07-02 18:06:24.388236237 +0800
+@@ -190,12 +190,12 @@
+      * settingss
+      */
+     if (avctx->framerate.num || avctx->framerate.den)
+-        v4l2_set_timeperframe(s, avctx->framerate.den, avctx->framerate.num);
++        v4l2_set_timeperframe(s, avctx->framerate.num, avctx->framerate.den);
+ 
+     /* set ext ctrls */
+     v4l2_set_ext_ctrl(s, MPEG_CID(HEADER_MODE), MPEG_VIDEO(HEADER_MODE_SEPARATE), "header mode", 0);
+     v4l2_set_ext_ctrl(s, MPEG_CID(BITRATE) , avctx->bit_rate, "bit rate", 1);
+-    v4l2_set_ext_ctrl(s, MPEG_CID(FRAME_RC_ENABLE), 1, "frame level rate control", 0);
++    v4l2_set_ext_ctrl(s, MPEG_CID(FRAME_RC_ENABLE), 0, "frame level rate control", 0);
+     v4l2_set_ext_ctrl(s, MPEG_CID(GOP_SIZE), avctx->gop_size,"gop size", 1);
+ 
+     av_log(avctx, AV_LOG_DEBUG,
+@@ -207,12 +207,20 @@
+     switch (avctx->codec_id) {
+     case AV_CODEC_ID_H264:
+         if (avctx->profile != FF_PROFILE_UNKNOWN) {
+-            val = v4l2_h264_profile_from_ff(avctx->profile);
+-            if (val < 0)
+-                av_log(avctx, AV_LOG_WARNING, "h264 profile not found\n");
+-            else
++            if (val < 0) {
++                av_log(avctx, AV_LOG_WARNING, "h264 profile not found. set default value: 0\n");
++                v4l2_set_ext_ctrl(s, MPEG_CID(H264_PROFILE), 0, "h264 profile", 1);
++            } else {
+                 v4l2_set_ext_ctrl(s, MPEG_CID(H264_PROFILE), val, "h264 profile", 1);
++            }
++        } else {
++            v4l2_set_ext_ctrl(s, MPEG_CID(H264_PROFILE), 0, "h264 profile", 1);
+         }
++
++        v4l2_set_ext_ctrl(s, MPEG_CID(H264_LEVEL), 11,"h264 level", 1);
++        v4l2_set_ext_ctrl(s, MPEG_CID(H264_LOOP_FILTER_ALPHA), 0, "H264_LOOP_FILTER_ALPHA", 1);
++        v4l2_set_ext_ctrl(s, MPEG_CID(H264_LOOP_FILTER_BETA), 0,"H264_LOOP_FILTER_BETA", 1);
++
+         qmin_cid = MPEG_CID(H264_MIN_QP);
+         qmax_cid = MPEG_CID(H264_MAX_QP);
+         qmin = 0;
+@@ -442,3 +450,4 @@
+ M2MENC(h264, "H.264", options,       AV_CODEC_ID_H264);
+ M2MENC(hevc, "HEVC",  options,       AV_CODEC_ID_HEVC);
+ M2MENC(vp8,  "VP8",   options,       AV_CODEC_ID_VP8);
++M2MENC(jpeg, "JPEG",   options,      AV_CODEC_ID_MJPEG);
