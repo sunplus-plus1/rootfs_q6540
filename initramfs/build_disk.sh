@@ -18,19 +18,26 @@ if [ "$1" = "v5" ]; then
 fi
 
 
-function cp_q654_files() {
+function cp_files() {
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+    cp -av prebuilt/resize2fs/v8/* $DISKOUT
     check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
     if [ "${check_remoteproc}" == "" ]; then
         echo '
-        # ADD REMOTEPROC
-        if [ -d /sys/class/remoteproc/remoteproc0 ]; then
-            if [ -f /lib/firmware/firmware ]; then
-                echo "Boot CM4 firmware by remoteproc"
-                echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-                echo start > /sys/class/remoteproc/remoteproc0/state
-            fi
-        fi' >> ${DISKOUT}/etc/profile
+# ADD REMOTEPROC
+if [ -d /sys/class/remoteproc/remoteproc0 ]; then
+    if [ -f /lib/firmware/firmware ]; then
+        echo "Boot CM4 firmware by remoteproc"
+        echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+        echo start > /sys/class/remoteproc/remoteproc0/state
+    fi
+fi
+
+if [ -f "/etc/init.d/rc.resizefs.once" ]; then
+    /etc/init.d/rc.resizefs.once
+    mv /etc/init.d/rc.resizefs.once /etc/init.d/rc.resizefs
+fi
+' >> ${DISKOUT}/etc/profile
     fi
     # ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
     FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
@@ -41,9 +48,12 @@ function cp_q654_files() {
 
     # for VC8000 V4L2 vsi daemon
     cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
+    # suspend
+    cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
+    cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
 
     mkdir -p ${DISKOUT}/etc/init.d
-	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
+	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs.once
 	if [ -d prebuilt/udev ]; then
 		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
@@ -52,7 +62,7 @@ function cp_q654_files() {
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     
     if [ -f "${DISKLIB}/os-release" ]; then
-        cp_q654_files
+        cp_files
     fi
     exit 0
 
@@ -66,72 +76,18 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
     fi
 
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
+
 	tar_rootfs=0
-
-	if [ ! -d ${DISKOUT} ]; then
-		tar_rootfs=1
-	elif [ -f ${DISKOUT}/init ]; then
-		rm -rf ${DISKOUT}
-		tar_rootfs=1
-	elif [ "$ARCH" = "arm64" ] && [ ! -f ${DISKLIB}/ld-linux-aarch64.so.1 ]; then
-		rm -rf ${DISKOUT}
-		tar_rootfs=1
-	elif [ "$ARCH" != "arm64" ] && [ -f ${DISKLIB}/ld-linux-aarch64.so.1 ]; then
-		rm -rf ${DISKLIB64}
-		rm ${DISKLIB}/ld-linux-aarch64.so.1
-		exit 0
-	fi
-
+    if [ -f "${DISKLIB}/os-release" ]; then
+        rm -rf ${DISKOUT}
+        tar_rootfs=1
+    fi
 	if [ ${tar_rootfs} -eq 1 ]; then
 		tar jxvf rootfs.tar.bz2 &>/dev/null
-		cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	fi
-
-	if [ "$ARCH" != "arm64" ]; then
-		if [ -d ${DISKLIB64} ]; then
-			rm -rf ${DISKLIB64}
-			rm ${DISKLIB}/ld-linux-aarch64.so.1
-		fi
-		if [ $V7_BUILD -eq 1 ]; then
-			if [ -d prebuilt/resize2fs/v7 ]; then
-				cp -av prebuilt/resize2fs/v7/* $DISKOUT
-			fi
-		else
-			if [ -d prebuilt/resize2fs/v5 ]; then
-				cp -av prebuilt/resize2fs/v5/* $DISKOUT
-			fi
-		fi
-	else
-		cp -av prebuilt/resize2fs/v8/* $DISKOUT
-		check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
-		if [ "${check_remoteproc}" == "" ]; then
-			echo '
-			# ADD REMOTEPROC
-			if [ -d /sys/class/remoteproc/remoteproc0 ]; then
-				if [ -f /lib/firmware/firmware ]; then
-					echo "Boot CM4 firmware by remoteproc"
-					echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-					echo start > /sys/class/remoteproc/remoteproc0/state
-				fi
-			fi' >> ${DISKOUT}/etc/profile
-		fi
-
-		# ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
-		FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
-		if [ -d ${DISKOUT}/etc/modprobe.d ]; then
-			echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-		fi
-		# for VC8000 V4L2 vsi daemon
-		cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
-		# suspend
-		cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
-		cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
-	fi
-	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs
-	if [ -d prebuilt/udev ]; then
-		cp -av prebuilt/udev/lib/* $DISKOUT/lib
-	fi
+    cp_files
 	exit 0
+
 elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ "$ARCH" != "arm64" ]; then
 		exit 1
