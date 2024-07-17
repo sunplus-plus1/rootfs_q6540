@@ -1,0 +1,12 @@
+[Unit]
+Description=Remount Root Filesystem as Overlay
+Before=systemd-timesyncd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/overlayfs.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=sysinit.target
+

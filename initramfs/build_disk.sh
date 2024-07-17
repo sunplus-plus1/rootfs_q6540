@@ -17,28 +17,31 @@ if [ "$1" = "v5" ]; then
 	V7_BUILD=0
 fi
 
-
 function cp_files() {
+	partition=
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-    cp -av prebuilt/resize2fs/v8/* $DISKOUT
-    check_remoteproc=`cat ${DISKOUT}/etc/profile | grep "REMOTEPROC"`
-    if [ "${check_remoteproc}" == "" ]; then
-        echo '
-# ADD REMOTEPROC
-if [ -d /sys/class/remoteproc/remoteproc0 ]; then
-    if [ -f /lib/firmware/firmware ]; then
-        echo "Boot CM4 firmware by remoteproc"
-        echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-        echo start > /sys/class/remoteproc/remoteproc0/state
-    fi
-fi
+	cp -R systemd/buildroot/* ${DISKOUT}
 
-if [ -f "/etc/init.d/rc.resizefs.once" ]; then
-    /etc/init.d/rc.resizefs.once
-    mv /etc/init.d/rc.resizefs.once /etc/init.d/rc.resizefs
-fi
-' >> ${DISKOUT}/etc/profile
-    fi
+	# cd ${DISKOUT}/etc/systemd/system/sysinit.target.wants
+	# ln -s /usr/lib/systemd/system/overlayfs.service overlayfs.service
+	# cd -
+
+	cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
+	if [ "$boot_from" = "EMMC" ]; then
+		partition=8
+	elif [ "$boot_from" = "SDCARD" ]; then
+		partition=2
+	fi
+	ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
+	ln -s /usr/lib/systemd/system/init_tasks.service init_tasks.service
+	cd -
+
+	# This file is for resize_partition.service use
+cat <<EOF > ${DISKOUT}/etc/systemd/resize-partition
+DEVTYPE=$boot_from
+DEVPART=$partition
+EOF
+
     # ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
     FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
 	if [ ! -d ${DISKOUT}/etc/modprobe.d ]; then
@@ -52,8 +55,6 @@ fi
     cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
     cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
 
-    mkdir -p ${DISKOUT}/etc/init.d
-	cp ${DISKZ}etc/init.d/rc.resizefs ${DISKOUT}/etc/init.d/rc.resizefs.once
 	if [ -d prebuilt/udev ]; then
 		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
@@ -62,9 +63,9 @@ fi
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     
     if [ -f "${DISKLIB}/os-release" ]; then
-        cp_files
+		cp_files
     fi
-    exit 0
+	exit 0
 
 elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
     #suspend/resume disable wlan0.
@@ -77,15 +78,16 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
 
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 
-	tar_rootfs=0
-    if [ -f "${DISKLIB}/os-release" ]; then
-        rm -rf ${DISKOUT}
-        tar_rootfs=1
-    fi
-	if [ ${tar_rootfs} -eq 1 ]; then
-		tar jxvf rootfs.tar.bz2 &>/dev/null
+    if [ -f "${DISKOUT}/usr/lib/os-release" ]; then
+		exit 0
 	fi
-    cp_files
+
+	if [ -f "${DISKOUT}" ]; then
+		rm -rf ${DISKOUT}
+	fi
+	tar jxvf rootfs.tar.bz2 &>/dev/null
+	cp_files
+
 	exit 0
 
 elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
