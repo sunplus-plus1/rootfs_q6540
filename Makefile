@@ -10,14 +10,14 @@ rootfs: initramfs_update
 	@./gen_root.sh ${boot_from} ${FLASH_SIZE} ${NAND_PAGE_SIZE} ${NAND_PAGE_CNT}
 
 initramfs:
-	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); ./build_disk.sh ${rootfs_cfg}; cd -
+	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); ./build_disk.sh ${rootfs_cfg}; cd -
 
 initramfs_update:
 	@cd initramfs ; \
 	 if [ ! -d disk ];then \
-		export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); ./build_disk.sh ${rootfs_cfg} ; \
+		export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); ./build_disk.sh ${rootfs_cfg} ; \
 	 else \
-		export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); ./build_disk.sh ${rootfs_cfg} update ; \
+		export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); ./build_disk.sh ${rootfs_cfg} update ; \
 	 fi ; \
 	 cd -
 
