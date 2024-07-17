@@ -1,0 +1,11 @@
+[Unit]
+Description=Initialization tasks
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/init_tasks.sh 
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
