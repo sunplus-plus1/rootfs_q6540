@@ -1,11 +1,11 @@
 [Unit]
 Description=Initialization tasks
-After=network.target
+After=systemd-networkd.service
 
 [Service]
-Type=oneshot
+Type=idle
 ExecStart=/usr/bin/init_tasks.sh 
-RemainAfterExit=yes
+RemainAfterExit=no
 
 [Install]
 WantedBy=multi-user.target

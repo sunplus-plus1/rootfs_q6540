@@ -7,10 +7,10 @@ rootfs_cfg ?= v7
 boot_from ?= EMMC
 
 rootfs: initramfs_update
-	@./gen_root.sh ${boot_from} ${FLASH_SIZE} ${NAND_PAGE_SIZE} ${NAND_PAGE_CNT}
+	@OVERLAYFS=${OVERLAYFS} ./gen_root.sh ${boot_from} ${FLASH_SIZE} ${NAND_PAGE_SIZE} ${NAND_PAGE_CNT}
 
 initramfs:
-	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); ./build_disk.sh ${rootfs_cfg}; cd -
+	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); export OVERLAYFS=${OVERLAYFS}; ./build_disk.sh ${rootfs_cfg}; cd -
 
 initramfs_update:
 	@cd initramfs ; \
