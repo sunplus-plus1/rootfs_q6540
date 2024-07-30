@@ -1,8 +1,5 @@
 #!/bin/sh
 
-DEVTYPE?=$1
-DEVPART?=$2
-
 ## SDCARD : DEVPART=2 => ext4    partition
 ## EMMC   : DEVPART=8 => rootfs  partition 
 ## EMMC   : DEVPART=9 => overlay partition 
@@ -41,5 +38,9 @@ if [ "$?" != "0" ]; then
   exit 1
 fi
 
-rm /etc/systemd/system/multi-user.target.wants/resize_partition.service
+MULTI_USER_TARGET_WANTS=/etc/systemd/system/multi-user.target.wants
+if [ -L "$MULTI_USER_TARGET_WANTS/resize_partition.service" ]; then
+  rm $MULTI_USER_TARGET_WANTS/resize_partition.service
+fi
+
 echo "Partition $PARTITION resized to maximum capacity."

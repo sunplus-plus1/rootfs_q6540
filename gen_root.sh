@@ -9,8 +9,7 @@ OUT_IMG=rootfs.img
 WORK_DIR=./initramfs/disk
 
 if [ "$1" = "EMMC" ]; then
-############################################  ext4 fs ############################################
-	echo -e  "\E[1;33m ========make ext4 fs========== \E[0m"
+	
 	FAKEROOT="fakeroot -- "
 	RESIZE=./tools/resize2fs
 
@@ -23,17 +22,24 @@ if [ "$1" = "EMMC" ]; then
 	diskdir_sz=`du -sb $WORK_DIR | cut -f1`
 	echo "rootfs total size = $diskdir_sz bytes"
 
-	# Assume 40% +20MB overhead for creating ext4 fs.
-	diskdir_sz=$((diskdir_sz*14/10))
-	EXT_SIZE=$((diskdir_sz/1024/1024+20))
 	rm -rf $OUT_IMG
 
-	$FAKEROOT /bin/bash -c "./tools/setting_attr.py $WORK_DIR ./initramfs/.tmp/attr.list; mke2fs -t ext4 -b 4096 -d $WORK_DIR $OUT_IMG $((EXT_SIZE))M"
-
-	# Resize to 10% more than minimum.
-	minimum_sz=`$RESIZE -P $OUT_IMG | cut -d: -f2`
-	minimum_sz=$((minimum_sz*11/10+1))
-	$RESIZE $OUT_IMG $minimum_sz
+    if [ "$OVERLAYFS" == "1" ]; then
+		#########################  squashfs fs #####################
+	    echo -e  "\E[1;33m ========make squashfs fs========== \E[0m"
+        mksquashfs $WORK_DIR $OUT_IMG 
+    else
+		# Assume 40% +20MB overhead for creating ext4 fs.
+		diskdir_sz=$((diskdir_sz*14/10))
+		EXT_SIZE=$((diskdir_sz/1024/1024+20))
+		$FAKEROOT /bin/bash -c "./tools/setting_attr.py $WORK_DIR ./initramfs/.tmp/attr.list; mke2fs -t ext4 -b 4096 -d $WORK_DIR $OUT_IMG $((EXT_SIZE))M"
+		#########################  ext4 fs #####################
+		echo -e  "\E[1;33m ========make ext4 fs========== \E[0m"
+		# Resize to 10% more than minimum.
+		minimum_sz=`$RESIZE -P $OUT_IMG | cut -d: -f2`
+		minimum_sz=$((minimum_sz*11/10+1))
+		$RESIZE $OUT_IMG $minimum_sz
+	fi
 
 elif [ "$1" = "SDCARD" ]; then
 	cp -av wifi_fw/* $WORK_DIR

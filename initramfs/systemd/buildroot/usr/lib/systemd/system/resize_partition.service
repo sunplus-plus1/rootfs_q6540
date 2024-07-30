@@ -1,12 +1,12 @@
 [Unit]
 Description=Resize partition to maximum size
-After=network.target
+After=systemd-networkd.service
 
 [Service]
 Type=oneshot
 EnvironmentFile=/etc/systemd/resize-partition
 ExecStart=/usr/bin/resize_partition.sh
-RemainAfterExit=yes
+RemainAfterExit=no
 
 [Install]
 WantedBy=multi-user.target

@@ -16,22 +16,44 @@ V7_BUILD=1
 if [ "$1" = "v5" ]; then
 	V7_BUILD=0
 fi
-
+set -x
 function cp_files() {
 	partition=
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 	cp -R systemd/buildroot/* ${DISKOUT}
 
-	# cd ${DISKOUT}/etc/systemd/system/sysinit.target.wants
-	# ln -s /usr/lib/systemd/system/overlayfs.service overlayfs.service
-	# cd -
-
-	cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
 	if [ "$boot_from" = "EMMC" ]; then
 		partition=8
+		if [ "${OVERLAYFS}" = "1" ]; then
+			partition=9
+		fi
 	elif [ "$boot_from" = "SDCARD" ]; then
 		partition=2
 	fi
+
+	if [ "${OVERLAYFS}" = "1" ]; then
+		mkdir -p ${DISKOUT}/overlay
+
+		if [ -f ${DISKOUT}/sbin/init ]; then
+			rm -f ${DISKOUT}/sbin/init
+		fi
+
+cat <<EOF > ${DISKOUT}/sbin/init
+#!/bin/sh
+mount /dev/mmcblk0p${partition} /overlay
+mkdir -p /overlay/upper
+mkdir -p /overlay/work
+mkdir -p /overlay/lower
+mount -t overlay overlay -o lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work /mnt
+mkdir -p /mnt/rom
+pivot_root /mnt /mnt/rom
+exec chroot . /lib/systemd/systemd		
+EOF
+chmod 0544 ${DISKOUT}/sbin/init
+
+	fi
+
+	cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
 	ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
 	ln -s /usr/lib/systemd/system/init_tasks.service init_tasks.service
 	cd -
