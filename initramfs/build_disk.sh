@@ -16,31 +16,19 @@ V7_BUILD=1
 if [ "$1" = "v5" ]; then
 	V7_BUILD=0
 fi
-set -x
-function cp_files() {
-	partition=
-    cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
-	cp -R systemd/buildroot/* ${DISKOUT}
 
-	if [ "$boot_from" = "EMMC" ]; then
-		partition=8
-		if [ "${OVERLAYFS}" = "1" ]; then
-			partition=9
-		fi
-	elif [ "$boot_from" = "SDCARD" ]; then
-		partition=2
+partition=
+
+function replace_sbin_init() {
+	if [ -f ${DISKOUT}/sbin/init ]; then
+		rm -f ${DISKOUT}/sbin/init
 	fi
-
 	if [ "${OVERLAYFS}" = "1" ]; then
 		mkdir -p ${DISKOUT}/overlay
 
-		if [ -f ${DISKOUT}/sbin/init ]; then
-			rm -f ${DISKOUT}/sbin/init
-		fi
-
 cat <<EOF > ${DISKOUT}/sbin/init
 #!/bin/sh
-mount /dev/mmcblk0p${partition} /overlay
+mount -t ext4 /dev/mmcblk0p${partition} /overlay
 mkdir -p /overlay/upper
 mkdir -p /overlay/work
 mkdir -p /overlay/lower
@@ -50,19 +38,52 @@ pivot_root /mnt /mnt/rom
 exec chroot . /lib/systemd/systemd		
 EOF
 chmod 0544 ${DISKOUT}/sbin/init
-
+	else
+		cd ${DISKOUT}/sbin
+			ln -s /lib/systemd/systemd init
+		cd -
 	fi
+}
 
-	cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
-	ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
-	ln -s /usr/lib/systemd/system/init_tasks.service init_tasks.service
-	cd -
+function resize_partition() {
+
+	if [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
+		
+		cp buildroot/systemd/usr/bin/init_tasks.sh ${DISKOUT}/etc/rc.local
+		cp buildroot/systemd/usr/bin/resize_partition.sh ${DISKOUT}/usr/bin/resize_partition.sh
+		cp buildroot/systemd/usr/lib/systemd/system/resize_partition.service ${DISKOUT}/usr/lib/systemd/system
+
+		cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
+		ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
+		cd -
+
+	else
+
+		cp -R buildroot/systemd/* ${DISKOUT}
+		cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
+		ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
+		ln -s /usr/lib/systemd/system/init_tasks.service init_tasks.service
+		cd -
+		
+	fi
 
 	# This file is for resize_partition.service use
 cat <<EOF > ${DISKOUT}/etc/systemd/resize-partition
 DEVTYPE=$boot_from
 DEVPART=$partition
 EOF
+
+}
+
+function cp_files() {
+	
+    cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
+
+	# for overlayfs
+	replace_sbin_init
+	
+	# resize emmc/sdcard partition
+	resize_partition
 
     # ADD modprobe parameter for VIP9000 NPU module "galcore" modprobe using
     FILE_GALCORE_ARG="${DISKOUT}/etc/modprobe.d/galcore.conf"
@@ -73,6 +94,7 @@ EOF
 
     # for VC8000 V4L2 vsi daemon
     cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
+
     # suspend
     cp ${DISKZ}etc/rc.suspend ${DISKOUT}/etc/rc.suspend
     cp ${DISKZ}etc/udev/rules.d/99-custom-suspend.rules ${DISKOUT}/etc/udev/rules.d/99-custom-suspend.rules
@@ -81,6 +103,15 @@ EOF
 		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
 }
+
+if [ "$boot_from" = "EMMC" ]; then
+	partition=8
+	if [ "${OVERLAYFS}" = "1" ]; then
+		partition=9
+	fi
+elif [ "$boot_from" = "SDCARD" ]; then
+	partition=2
+fi
 
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     
@@ -101,6 +132,7 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 
     if [ -f "${DISKOUT}/usr/lib/os-release" ]; then
+		cp_files
 		exit 0
 	fi
 
@@ -108,8 +140,7 @@ elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 		rm -rf ${DISKOUT}
 	fi
 	tar jxvf rootfs.tar.bz2 &>/dev/null
-	cp_files
-
+	
 	exit 0
 
 elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
@@ -120,6 +151,11 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
 		DISTRIB_ID=$(grep '^DISTRIB_ID=' "${DISKOUT}/etc/lsb-release" | awk -F '=' '{print $2}')
 		if [ "${DISTRIB_ID}" = "Ubuntu" ]; then
+			# for overlayfs
+			replace_sbin_init
+
+			# resize emmc/sdcard partition
+			resize_partition
 			exit 0
 		fi
 		rm -rf "${DISKOUT}"

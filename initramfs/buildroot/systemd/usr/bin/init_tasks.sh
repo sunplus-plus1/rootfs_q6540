@@ -13,28 +13,37 @@ start_remote_proc() {
   fi
 }
 
-# Main script execution
+# Function to change NPU device attritute
+change_NPU_attr() {
+  if [ -e /dev/galcore ];then
+          echo "Change NPU device "galcore" file attritute"
+          chmod 666 /dev/galcore
+  fi
+}
+
+# Script execution
 start_remote_proc
+# change_NPU_attr
 
 # set tty h=40 w=140
-stty rows 30 cols 80
+# stty rows 30 cols 80
 
 umount -l /rom
 
 rm -rf /overlay /rom
 
-find / \
-  -path /proc -prune -o \
-  -path /sys -prune -o \
-  -path /run -prune -o \
-  -exec chown -R root:root {} \;
+# find / \
+#   -path /proc -prune -o \
+#   -path /sys -prune -o \
+#   -path /run -prune -o \
+#   -exec chown -R root:root {} \;
 
-chown -R root:root /lib
-chown -R root:root /lib64
-chown -R root:root /bin
+# chown -R root:root /lib
+# chown -R root:root /lib64
+# chown -R root:root /bin
 
-if [ -f "/linuxrc" ]; then
-  chown root:root /linuxrc
-fi
+# if [ -f "/linuxrc" ]; then
+#   chown root:root /linuxrc
+# fi
 
 echo "Initialization tasks completed."

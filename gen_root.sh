@@ -27,7 +27,7 @@ if [ "$1" = "EMMC" ]; then
     if [ "$OVERLAYFS" == "1" ]; then
 		#########################  squashfs fs #####################
 	    echo -e  "\E[1;33m ========make squashfs fs========== \E[0m"
-        mksquashfs $WORK_DIR $OUT_IMG 
+		$FAKEROOT /bin/bash -c "./tools/setting_attr.py $WORK_DIR ./initramfs/.tmp/attr.list; mksquashfs $WORK_DIR $OUT_IMG "
     else
 		# Assume 40% +20MB overhead for creating ext4 fs.
 		diskdir_sz=$((diskdir_sz*14/10))
