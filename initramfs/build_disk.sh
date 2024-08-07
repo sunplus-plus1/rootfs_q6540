@@ -116,6 +116,16 @@ fi
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     
     if [ -f "${DISKLIB}/os-release" ]; then
+		# Remove default config of getty@.service.d
+		if [ -d "${DISKOUT}/usr/lib/systemd/system/getty@.service.d" ]; then
+			rm -rf "${DISKOUT}/usr/lib/systemd/system/getty@.service.d"
+		fi
+
+		# Add virtual console tty1
+		mkdir -p ${DISKOUT}/etc/systemd/system/getty.target.wants
+		cd ${DISKOUT}/etc/systemd/system/getty.target.wants
+		ln -s /usr/lib/systemd/system/getty@.service getty@tty1.service
+		cd -
 		cp_files
     fi
 	exit 0
