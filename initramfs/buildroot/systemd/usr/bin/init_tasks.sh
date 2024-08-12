@@ -23,7 +23,7 @@ change_NPU_attr() {
 
 # Script execution
 start_remote_proc
-# change_NPU_attr
+change_NPU_attr
 
 # set tty h=40 w=140
 # stty rows 30 cols 80
