@@ -25,7 +25,6 @@ function replace_sbin_init() {
 	fi
 	if [ "${OVERLAYFS}" = "1" ]; then
 		mkdir -p ${DISKOUT}/overlay
-
 cat <<EOF > ${DISKOUT}/sbin/init
 #!/bin/sh
 mount -t ext4 /dev/mmcblk0p${partition} /overlay
@@ -35,13 +34,19 @@ mkdir -p /overlay/lower
 mount -t overlay overlay -o lowerdir=/,upperdir=/overlay/upper,workdir=/overlay/work /mnt
 mkdir -p /mnt/rom
 pivot_root /mnt /mnt/rom
-exec chroot . /lib/systemd/systemd		
+exec chroot . $1
 EOF
 chmod 0544 ${DISKOUT}/sbin/init
 	else
-		cd ${DISKOUT}/sbin
-			ln -s /lib/systemd/systemd init
-		cd -
+		if [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
+			cd ${DISKOUT}/sbin
+				ln -s /bin/busybox init
+			cd -
+		else
+			cd ${DISKOUT}/sbin
+				ln -s $1 init
+			cd -
+		fi
 	fi
 }
 
@@ -49,8 +54,8 @@ function resize_partition() {
 
 	if [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 		
-		cp buildroot/systemd/usr/bin/init_tasks.sh ${DISKOUT}/etc/rc.local
-		cp buildroot/systemd/usr/bin/resize_partition.sh ${DISKOUT}/usr/bin/resize_partition.sh
+		cp buildroot/systemd/usr/bin/init_tasks.sh ${DISKOUT}/usr/bin/
+		cp buildroot/systemd/usr/bin/resize_partition.sh ${DISKOUT}/usr/bin/
 		cp buildroot/systemd/usr/lib/systemd/system/resize_partition.service ${DISKOUT}/usr/lib/systemd/system
 
 		cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
@@ -80,7 +85,7 @@ function cp_files() {
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 
 	# for overlayfs
-	replace_sbin_init
+	replace_sbin_init "/lib/systemd/systemd"
 	
 	# resize emmc/sdcard partition
 	resize_partition
@@ -113,6 +118,21 @@ elif [ "$boot_from" = "SDCARD" ]; then
 	partition=2
 fi
 
+# restore rootfs to factory setting
+if [ "${OVERLAYFS}" = "1" ]; then
+
+cat <<EOF > ${DISKOUT}/sbin/restore
+#!/bin/sh
+mount -t ext4 /dev/mmcblk0p$partition /mnt
+rm -rf /mnt/lowwer/*
+rm -rf /mnt/upper/*
+rm -rf /mnt/work/*
+reboot
+EOF
+chmod 0544 ${DISKOUT}/sbin/restore
+
+fi
+
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
     
     if [ -f "${DISKLIB}/os-release" ]; then
@@ -121,10 +141,12 @@ if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
 			rm -rf "${DISKOUT}/usr/lib/systemd/system/getty@.service.d"
 		fi
 
-		# Add virtual console tty1
+		# Add virtual console tty1~3
 		mkdir -p ${DISKOUT}/etc/systemd/system/getty.target.wants
 		cd ${DISKOUT}/etc/systemd/system/getty.target.wants
 		ln -s /usr/lib/systemd/system/getty@.service getty@tty1.service
+		ln -s /usr/lib/systemd/system/getty@.service getty@tty2.service
+		ln -s /usr/lib/systemd/system/getty@.service getty@tty3.service
 		cd -
 		cp_files
     fi
@@ -137,7 +159,7 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
             cp -rf prebuilt/suspend/suspend_closewifi ${DISKOUT}/bin
             sed -i '/\/bin\/echo "End of \$0"/ { x; s|^|/bin/suspend_closewifi \&\n|; G}' ${DISKOUT}/etc/init.d/rcS
         fi
-    fi
+    fi	
 
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
 
@@ -161,11 +183,12 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
 		DISTRIB_ID=$(grep '^DISTRIB_ID=' "${DISKOUT}/etc/lsb-release" | awk -F '=' '{print $2}')
 		if [ "${DISTRIB_ID}" = "Ubuntu" ]; then
-			# for overlayfs
-			replace_sbin_init
-
-			# resize emmc/sdcard partition
-			resize_partition
+            if [ "${OVERLAYFS}" = "1" ]; then
+                # for overlayfs
+                replace_sbin_init "/lib/systemd/systemd"    
+                # resize emmc/sdcard partition
+                resize_partition
+            fi
 			exit 0
 		fi
 		rm -rf "${DISKOUT}"
@@ -361,6 +384,24 @@ if [ "$ARCH" = "arm64" ]; then
 		mkdir -p ${DISKOUT}/etc/modprobe.d
 	fi
 	echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
+	
+	# for overlayfs
+	replace_sbin_init "/bin/busybox init"
+
+	if [ "${OVERLAYFS}" = "1" ]; then
+cat <<EOF > ${DISKOUT}/etc/init.d/rc.init
+#!/bin/sh
+if [ -f /etc/init.d/rc.resizefs ];then
+        /sbin/resize2fs /dev/mmcblk0p${partition}
+        rm /etc/init.d/rc.resizefs
+fi
+umount -l /rom
+rm -rf /overlay /rom
+
+EOF
+	chmod +x ${DISKOUT}/etc/init.d/rc.init
+	fi
+
 elif [ $V7_BUILD -eq 1 ]; then
 	if [ -d prebuilt/resize2fs/v7 ]; then
 		cp -av prebuilt/resize2fs/v7/* $DISKOUT
