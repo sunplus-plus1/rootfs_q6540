@@ -1,64 +1,70 @@
 #!/bin/sh		
-if [ -d /sys/class/remoteproc/remoteproc0 ];then
-        if [ -f /lib/firmware/firmware ];then
-                echo "Boot CM4 firmware by remoteproc"
-                echo firmware > /sys/class/remoteproc/remoteproc0/firmware
-                echo start > /sys/class/remoteproc/remoteproc0/state
+
+if [ ! -L /sbin/init ]; then
+    # for OVERLAYFS
+    /usr/bin/init_tasks.sh
+else
+
+    if [ -d /sys/class/remoteproc/remoteproc0 ];then
+            if [ -f /lib/firmware/firmware ];then
+                    echo "Boot CM4 firmware by remoteproc"
+                    echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+                    echo start > /sys/class/remoteproc/remoteproc0/state
+            fi
+    fi
+    if [ -e /dev/galcore ];then
+            echo "Change NPU device "galcore" file attritute"
+            chmod 666 /dev/galcore
+    fi
+
+    PART_FLAG=/etc/init.d/partflag
+    #SIZE=5
+    if [ ! -f $PART_FLAG ];then
+
+        ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
+        echo "ROOT_PART=$ROOT_PART"
+
+        ROOT_DEV=/dev/$(echo "$ROOT_PART" | cut -c1-7)
+        echo "ROOT_DEV=$ROOT_DEV"
+
+        RESIZE_PART=/dev/$ROOT_PART
+        echo "RESIZE_PART=$RESIZE_PART"
+
+        #PART_NUM=$(echo "$ROOT_PART" | cut -c9)
+        #echo "PART_NUM=$PART_NUM"
+
+        ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
+        echo "ST_PART_NUM=$ST_PART_NUM"
+
+        if [ $ST_PART_NUM -ne 2 ];then
+            echo "Not the SD card rootfs partition, just resize2fs rootfs to max disk capacity"
+            resize2fs $RESIZE_PART
+            touch $PART_FLAG
+            exit 0
         fi
-fi
-if [ -e /dev/galcore ];then
-        echo "Change NPU device "galcore" file attritute"
-        chmod 666 /dev/galcore
-fi
 
-PART_FLAG=/etc/init.d/partflag
-#SIZE=5
-if [ ! -f $PART_FLAG ];then
+        PART_START=$(parted $ROOT_DEV -ms unit s p | grep "^${ST_PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
+        echo "PART_START_SECTOR=$PART_START sector"
 
-	ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
-	echo "ROOT_PART=$ROOT_PART"
+        #PART_START=$(fdisk -lu $ROOT_DEV | grep "$RESIZE_PART"|awk '{print $2}'|tr -cd "[0-9]")
+        #echo "$RESIZE_PART start sector=$PART_START sector"
 
-	ROOT_DEV=/dev/$(echo "$ROOT_PART" | cut -c1-7)
-	echo "ROOT_DEV=$ROOT_DEV"
+        ### Extend to full size - 10MB
+        DEV_TOTAL_SIZE=$(fdisk -lu $ROOT_DEV | grep "Disk $ROOT_DEV:"|awk '{print $5}'|tr -cd "[0-9]")
+        echo "$ROOT_DEV total size=$DEV_TOTAL_SIZE bytes"
+        ### 1 sector = 0.5KBytes, to reserve 10MB, z=20480
+        DEV_TOTAL_SIZE=$(awk -v x=$DEV_TOTAL_SIZE -v y=512 -v z=20480 'BEGIN{printf "%d\n",(x/y)-z}')
+        echo "Want to extend $RESIZE_PART end sector to $DEV_TOTAL_SIZE"
+        PART_END=$DEV_TOTAL_SIZE
 
-	RESIZE_PART=/dev/$ROOT_PART
-	echo "RESIZE_PART=$RESIZE_PART"
+        ### Extend to $SIZE GByte size
+        #SEC=$(( $SIZE * 1024  * 1024  * 1024 / 512 ))
+        #echo "Want to extend $RESIZE_PART size to be $SIZE GBytes=$SEC sectors"
+        #PART_END=$(( $PART_START + $SEC ))
+        #echo "PART_END_SECTOR=$PART_END sector"
 
-	#PART_NUM=$(echo "$ROOT_PART" | cut -c9)
-	#echo "PART_NUM=$PART_NUM"
-
-	ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
-	echo "ST_PART_NUM=$ST_PART_NUM"
-
-	if [ $ST_PART_NUM -ne 2 ];then
-		echo "Not the SD card rootfs partition, just resize2fs rootfs to max disk capacity"
-		resize2fs $RESIZE_PART
-		touch $PART_FLAG
-		exit 0
-	fi
-
-	PART_START=$(parted $ROOT_DEV -ms unit s p | grep "^${ST_PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
-	echo "PART_START_SECTOR=$PART_START sector"
-
-	#PART_START=$(fdisk -lu $ROOT_DEV | grep "$RESIZE_PART"|awk '{print $2}'|tr -cd "[0-9]")
-	#echo "$RESIZE_PART start sector=$PART_START sector"
-
-	### Extend to full size - 10MB
-	DEV_TOTAL_SIZE=$(fdisk -lu $ROOT_DEV | grep "Disk $ROOT_DEV:"|awk '{print $5}'|tr -cd "[0-9]")
-	echo "$ROOT_DEV total size=$DEV_TOTAL_SIZE bytes"
-	### 1 sector = 0.5KBytes, to reserve 10MB, z=20480
-	DEV_TOTAL_SIZE=$(awk -v x=$DEV_TOTAL_SIZE -v y=512 -v z=20480 'BEGIN{printf "%d\n",(x/y)-z}')
-	echo "Want to extend $RESIZE_PART end sector to $DEV_TOTAL_SIZE"
-	PART_END=$DEV_TOTAL_SIZE
-
-	### Extend to $SIZE GByte size
-	#SEC=$(( $SIZE * 1024  * 1024  * 1024 / 512 ))
-	#echo "Want to extend $RESIZE_PART size to be $SIZE GBytes=$SEC sectors"
-	#PART_END=$(( $PART_START + $SEC ))
-	#echo "PART_END_SECTOR=$PART_END sector"
-
-	### Extend ROOTFS PARTITION
-	fdisk $ROOT_DEV <<EOF
+        ### Extend ROOTFS PARTITION
+        fdisk $ROOT_DEV <<EOF
 p
 d
 $ST_PART_NUM
@@ -71,10 +77,10 @@ p
 w
 EOF
 
-	touch $PART_FLAG
+        touch $PART_FLAG
 
-	### now set up an init.d script
-  cat <<EOF > /etc/init.d/resize2fs_once &&
+        ### now set up an init.d script
+        cat <<EOF > /etc/init.d/resize2fs_once &&
 #!/bin/sh
 ### BEGIN INIT INFO
 # Provides:          resize2fs_once
@@ -101,9 +107,11 @@ case "\$1" in
 esac
 EOF
 
-	chmod +x /etc/init.d/resize2fs_once &&
-	update-rc.d resize2fs_once defaults &&
-	echo "Root partition has been resized.\nThe filesystem will be enlarged upon the next reboot"
-	echo "ReBoot now"
-	reboot
+        chmod +x /etc/init.d/resize2fs_once &&
+        update-rc.d resize2fs_once defaults &&
+        echo "Root partition has been resized.\nThe filesystem will be enlarged upon the next reboot"
+        echo "ReBoot now"
+        reboot
+    fi
+
 fi
