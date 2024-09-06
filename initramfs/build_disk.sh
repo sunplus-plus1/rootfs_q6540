@@ -19,6 +19,12 @@ fi
 
 partition=
 
+LIBPATH=/usr/lib
+
+if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
+	LIBPATH=/lib
+fi
+
 function replace_sbin_init() {
 	if [ -f ${DISKOUT}/sbin/init ]; then
 		rm -f ${DISKOUT}/sbin/init
@@ -64,10 +70,12 @@ function resize_partition() {
 
 	else
 
-		cp -R buildroot/systemd/* ${DISKOUT}
+		cp buildroot/systemd/usr/bin/*  ${DISKOUT}/usr/bin/
+		cp -R buildroot/systemd/usr/lib/systemd ${DISKOUT}${LIBPATH}
+		
 		cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
-		ln -s /usr/lib/systemd/system/resize_partition.service resize_partition.service
-		ln -s /usr/lib/systemd/system/init_tasks.service init_tasks.service
+		ln -s ${LIBPATH}/systemd/system/resize_partition.service resize_partition.service
+		ln -s ${LIBPATH}/systemd/system/init_tasks.service init_tasks.service
 		cd -
 		
 	fi
@@ -107,6 +115,8 @@ function cp_files() {
 	if [ -d prebuilt/udev ]; then
 		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
+
+	sed -i '/\/agetty/ s|\/agetty|& -a root|' ${DISKOUT}${LIBPATH}/systemd/system/serial-getty@.service 	
 }
 
 if [ "$boot_from" = "EMMC" ]; then
@@ -123,14 +133,32 @@ if [ "${OVERLAYFS}" = "1" ]; then
 
 cat <<EOF > ${DISKOUT}/sbin/restore
 #!/bin/sh
+which systemctl
+if [ "$$?" == "0" ]; then
+	systemctl stop systemd-journald.service
+	systemctl stop systemd-journald.socket
+	journalctl --rotate
+	journalctl --vacuum-time=1s
+	systemctl stop systemd-journald.service
+	systemctl stop systemd-journald.socket
+	systemctl stop systemd-journald-audit.socket
+	systemctl stop systemd-journald-dev-log.socket
+fi
 mount -t ext4 /dev/mmcblk0p$partition /mnt
 rm -rf /mnt/lowwer/*
 rm -rf /mnt/upper/*
 rm -rf /mnt/work/*
 reboot
 EOF
-chmod 0544 ${DISKOUT}/sbin/restore
-
+	chmod 0544 ${DISKOUT}/sbin/restore
+	if [ "${ROOTFS_CONTENT}" != "BUSYBOX" ]; then
+		cp buildroot/systemd/usr/lib/systemd/system/monitor_keys.service ${DISKOUT}${LIBPATH}/systemd/system/
+		if [ -d "${DISKOUT}/etc/systemd/system/multi-user.target.wants" ]; then
+			cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
+			ln -s ${LIBPATH}/systemd/system/monitor_keys.service monitor_keys.service
+			cd -
+		fi
+	fi
 fi
 
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
@@ -162,17 +190,9 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
     fi	
 
 elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
-
     if [ -f "${DISKOUT}/usr/lib/os-release" ]; then
 		cp_files
-		exit 0
 	fi
-
-	if [ -f "${DISKOUT}" ]; then
-		rm -rf ${DISKOUT}
-	fi
-	tar jxvf rootfs.tar.bz2 &>/dev/null
-	
 	exit 0
 
 elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then

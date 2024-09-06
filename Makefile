@@ -13,6 +13,15 @@ initramfs:
 	@cd initramfs; export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); export OVERLAYFS=${OVERLAYFS}; ./build_disk.sh ${rootfs_cfg}; cd -
 
 initramfs_update:
+	@$(eval ROOTFS_DIR := $(shell echo `pwd`/initramfs/disk)) \
+	if [ ! -f "$(ROOTFS_DIR)/usr/bin/adckey" ]; then \
+		make -C tools/adckey clean; \
+		make -C tools/adckey all CROSS=$(CROSS); \
+		if [ $$? -ne 0 ]; then \
+			exit 1; \
+		fi; \
+		make -C tools/adckey install ROOTFS_DIR=$(ROOTFS_DIR); \
+	fi
 	@cd initramfs ; \
 	 if [ ! -d disk ];then \
 		export ARCH=$(ARCH); export CROSS=$(CROSS); export ROOTFS_CONTENT=$(ROOTFS_CONTENT); export boot_from=$(boot_from); ./build_disk.sh ${rootfs_cfg} ; \

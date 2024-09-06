@@ -35,6 +35,10 @@ if [ -f /etc/init.d/rc.init ];then
 	/etc/init.d/rc.init
 fi
 
+if [ -f /usr/bin/adckey ];then
+	/usr/bin/adckey /dev/input/event0 10 "restore" &
+fi
+
 if [ -f /etc/init.d/rc.sdcardboot ];then
 	/etc/init.d/rc.sdcardboot
 elif [ -f /etc/init.d/rc.resizefs ];then

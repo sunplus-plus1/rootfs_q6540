@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor Keys Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/adckey /dev/input/event0 10 "restore"
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

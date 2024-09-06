@@ -6,3 +6,5 @@ disk/
 extra/
 busybox-*/
 initramfs/.tmp/
+initramfs/rootfs.tar.bz2
+initramfs/yocto/bitbake-cookerdaemon.log
