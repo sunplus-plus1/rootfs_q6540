@@ -1,0 +1,66 @@
+diff -uNr ffmpeg-4.4.4.a/libavcodec/v4l2_m2m_enc.c ffmpeg-4.4.4.b/libavcodec/v4l2_m2m_enc.c
+--- ffmpeg-4.4.4.a/libavcodec/v4l2_m2m_enc.c	2024-09-10 02:39:25.240325816 +0000
++++ ffmpeg-4.4.4.b/libavcodec/v4l2_m2m_enc.c	2024-09-10 02:41:25.432331376 +0000
+@@ -328,6 +328,7 @@
+     V4L2m2mContext *s = ((V4L2m2mPriv*)avctx->priv_data)->context;
+     V4L2Context *const capture = &s->capture;
+     V4L2Context *const output = &s->output;
++    V4L2m2mPriv *priv = avctx->priv_data;
+     AVFrame *frame = s->frame;
+     int ret;
+ 
+@@ -367,7 +368,32 @@
+     }
+ 
+ dequeue:
+-    return ff_v4l2_context_dequeue_packet(capture, avpkt);
++    ret = ff_v4l2_context_dequeue_packet(capture, avpkt);
++    if(!avctx->extradata){  //Save spspps to extra data
++	avctx->extradata = (uint8_t*)malloc(avpkt->size);
++	avctx->extradata_size = avpkt->size;
++	memcpy(avctx->extradata, avpkt->data, avpkt->size);
++    }
++    if(priv->spspps_to_idr){
++	if(avpkt->flags & AV_PKT_FLAG_KEY){ //Add spspps to idr
++	    static int fst_idr = 1;
++	    if(!fst_idr && avpkt->buf){
++	        int new_size = avpkt->size + avctx->extradata_size;
++		uint8_t *data = av_mallocz(new_size);
++		memcpy(data, avctx->extradata, avctx->extradata_size);
++		memcpy(data + avctx->extradata_size, avpkt->data, avpkt->size);
++                
++		av_buffer_unref(&avpkt->buf);
++                
++		avpkt->buf = av_buffer_create(data, new_size, NULL, NULL, 0);
++		avpkt->size = new_size;
++		avpkt->data = avpkt->buf->data;
++	     }
++	     fst_idr = 0;
++	}
++    }
++    return ret;
++
+ }
+ 
+ static av_cold int v4l2_encode_init(AVCodecContext *avctx)
+@@ -441,6 +467,8 @@
+ 
+ static const AVOption options[] = {
+     V4L_M2M_CAPTURE_OPTS,
++    { "spspps_to_idr", "Add spspps to each key frame", \
++	OFFSET(spspps_to_idr), AV_OPT_TYPE_BOOL, {.i64 = 0 }, 0, 1, FLAGS },
+     { NULL },
+ };
+ 
+diff -uNr ffmpeg-4.4.4.a/libavcodec/v4l2_m2m.h ffmpeg-4.4.4.b/libavcodec/v4l2_m2m.h
+--- ffmpeg-4.4.4.a/libavcodec/v4l2_m2m.h	2023-03-26 14:21:00.000000000 +0000
++++ ffmpeg-4.4.4.b/libavcodec/v4l2_m2m.h	2024-09-10 02:41:15.428330913 +0000
+@@ -76,6 +76,8 @@
+ 
+     int num_output_buffers;
+     int num_capture_buffers;
++
++    int spspps_to_idr;
+ } V4L2m2mPriv;
+ 
+ /**
