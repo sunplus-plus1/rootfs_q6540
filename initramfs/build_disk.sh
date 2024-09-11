@@ -21,7 +21,7 @@ partition=
 
 LIBPATH=/usr/lib
 
-if [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
+if [ "${ROOTFS_CONTENT:0:5}" = "YOCTO" ]; then
 	LIBPATH=/lib
 fi
 
@@ -189,7 +189,7 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
         fi
     fi	
 
-elif [ "${ROOTFS_CONTENT}" = "YOCTO" ]; then
+elif [ "${ROOTFS_CONTENT:0:5}" = "YOCTO" ]; then
     if [ -f "${DISKOUT}/usr/lib/os-release" ]; then
 		cp_files
 	fi

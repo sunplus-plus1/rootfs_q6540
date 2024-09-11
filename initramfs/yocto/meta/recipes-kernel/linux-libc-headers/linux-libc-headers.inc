@@ -56,8 +56,8 @@ MIN_VER = "${@oe.utils.trim_version("${PV}", 2).split('.')[1]}"
 inherit kernel-arch pkgconfig multilib_header
 
 KORG_ARCHIVE_COMPRESSION ?= "xz"
-
-SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v${HEADER_FETCH_VER}/linux-${PV}.tar.${KORG_ARCHIVE_COMPRESSION}"
+# SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v${HEADER_FETCH_VER}/linux-${PV}.tar.${KORG_ARCHIVE_COMPRESSION}"
+SRC_URI = "https://ftp.ntu.edu.tw/linux/kernel/v${HEADER_FETCH_VER}/linux-${PV}.tar.${KORG_ARCHIVE_COMPRESSION}"
 UPSTREAM_CHECK_URI = "https://www.kernel.org/"
 
 S = "${WORKDIR}/linux-${PV}"
@@ -76,6 +76,7 @@ do_install() {
 	# The ..install.cmd conflicts between various configure runs
 	find ${D}${includedir} -name ..install.cmd | xargs rm -f
 }
+
 
 do_install:append:aarch64 () {
         do_install_armmultilib

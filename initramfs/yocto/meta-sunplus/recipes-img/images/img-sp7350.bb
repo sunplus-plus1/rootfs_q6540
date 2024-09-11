@@ -22,6 +22,7 @@ update_issue() {
     echo "Yocto build ${SDK_VERSION}
 " > ${IMAGE_ROOTFS}/etc/issue
     echo "${MACHINE}-${BOARDNAME}" > ${IMAGE_ROOTFS}/etc/hostname
+    echo "export TERM=vt100" > ${IMAGE_ROOTFS}/home/root/.bashrc
 
     # Root auto login
     sed -i '/\/agetty/ s|\/agetty|& -a root|' ${IMAGE_ROOTFS}/lib/systemd/system/serial-getty@.service 
@@ -88,6 +89,9 @@ IMAGE_INSTALL = " \
     python3-evdev \
     systemd \
 "
+IMAGE_INSTALL:append = " busybox"
+PACKAGECONFIG:append = " vi"
+
 # IMAGE_INSTALL:append = " qtbase"
 # IMAGE_INSTALL:append = " matchbox-desktop matchbox-wm matchbox-panel matchbox-keyboard xserver-xf86-config matchbox-session matchbox-terminal"
 # IMAGE_INSTALL:append = " xserver-xorg xinit xauth xterm xclock font-alias font-misc-misc xf86-video-modesetting xf86-video-fbdev twm"
