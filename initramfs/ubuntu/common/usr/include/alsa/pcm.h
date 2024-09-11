@@ -282,17 +282,9 @@ typedef enum _snd_pcm_format {
 
 /** PCM sample subformat */
 typedef enum _snd_pcm_subformat {
-	/** Unknown */
-	SND_PCM_SUBFORMAT_UNKNOWN = -1,
 	/** Standard */
 	SND_PCM_SUBFORMAT_STD = 0,
-	/** Maximum bits based on PCM format */
-	SND_PCM_SUBFORMAT_MSBITS_MAX = 1,
-	/** 20 most significant bits */
-	SND_PCM_SUBFORMAT_MSBITS_20 = 2,
-	/** 24 most significant bits */
-	SND_PCM_SUBFORMAT_MSBITS_24 = 3,
-	SND_PCM_SUBFORMAT_LAST = SND_PCM_SUBFORMAT_MSBITS_24
+	SND_PCM_SUBFORMAT_LAST = SND_PCM_SUBFORMAT_STD
 } snd_pcm_subformat_t;
 
 /** PCM state */
@@ -351,7 +343,6 @@ typedef enum _snd_pcm_tstamp {
 	SND_PCM_TSTAMP_LAST = SND_PCM_TSTAMP_ENABLE
 } snd_pcm_tstamp_t;
 
-/** PCM timestamp type */
 typedef enum _snd_pcm_tstamp_type {
 	SND_PCM_TSTAMP_TYPE_GETTIMEOFDAY = 0,	/**< gettimeofday equivalent */
 	SND_PCM_TSTAMP_TYPE_MONOTONIC,	/**< posix_clock_monotonic equivalent */
@@ -359,37 +350,24 @@ typedef enum _snd_pcm_tstamp_type {
 	SND_PCM_TSTAMP_TYPE_LAST = SND_PCM_TSTAMP_TYPE_MONOTONIC_RAW,
 } snd_pcm_tstamp_type_t;
 
-/** PCM audio timestamp type */
-typedef enum _snd_pcm_audio_tstamp_type {
-	/**
-	 * first definition for backwards compatibility only,
-	 * maps to wallclock/link time for HDAudio playback and DEFAULT/DMA time for everything else
-	 */
-	SND_PCM_AUDIO_TSTAMP_TYPE_COMPAT = 0,
-	SND_PCM_AUDIO_TSTAMP_TYPE_DEFAULT = 1,           /**< DMA time, reported as per hw_ptr */
-	SND_PCM_AUDIO_TSTAMP_TYPE_LINK = 2,	           /**< link time reported by sample or wallclock counter, reset on startup */
-	SND_PCM_AUDIO_TSTAMP_TYPE_LINK_ABSOLUTE = 3,	   /**< link time reported by sample or wallclock counter, not reset on startup */
-	SND_PCM_AUDIO_TSTAMP_TYPE_LINK_ESTIMATED = 4,    /**< link time estimated indirectly */
-	SND_PCM_AUDIO_TSTAMP_TYPE_LINK_SYNCHRONIZED = 5, /**< link time synchronized with system time */
-	SND_PCM_AUDIO_TSTAMP_TYPE_LAST = SND_PCM_AUDIO_TSTAMP_TYPE_LINK_SYNCHRONIZED
-} snd_pcm_audio_tstamp_type_t;
-
-/** PCM audio timestamp config */
 typedef struct _snd_pcm_audio_tstamp_config {
 	/* 5 of max 16 bits used */
-	unsigned int type_requested:4; /**< requested audio tstamp type */
-	unsigned int report_delay:1; /**< add total delay to A/D or D/A */
+	unsigned int type_requested:4;
+	unsigned int report_delay:1; /* add total delay to A/D or D/A */
 } snd_pcm_audio_tstamp_config_t;
 
-/** PCM audio timestamp report */
 typedef struct _snd_pcm_audio_tstamp_report {
 	/* 6 of max 16 bits used for bit-fields */
 
-	unsigned int valid:1; /**< for backwards compatibility */
-	unsigned int actual_type:4; /**< actual type if hardware could not support requested timestamp */
+	/* for backwards compatibility */
+	unsigned int valid:1;
 
-	unsigned int accuracy_report:1; /**< 0 if accuracy unknown, 1 if accuracy field is valid */
-	unsigned int accuracy; /**< up to 4.29s in ns units, will be packed in separate field  */
+	/* actual type if hardware could not support requested timestamp */
+	unsigned int actual_type:4;
+
+	/* accuracy represented in ns units */
+	unsigned int accuracy_report:1; /* 0 if accuracy unknown, 1 if accuracy field is valid */
+	unsigned int accuracy; /* up to 4.29s, will be packed in separate field  */
 } snd_pcm_audio_tstamp_report_t;
 
 /** Unsigned frames quantity */
@@ -401,8 +379,6 @@ typedef long snd_pcm_sframes_t;
 #define SND_PCM_NONBLOCK		0x00000001
 /** Async notification (flag for open mode) \hideinitializer */
 #define SND_PCM_ASYNC			0x00000002
-/** Return EINTR instead blocking (wait operation) */
-#define SND_PCM_EINTR			0x00000080
 /** In an abort state (internal, not allowed for open) */
 #define SND_PCM_ABORT			0x00008000
 /** Disable automatic (but not forced!) rate resamplinig */
@@ -507,13 +483,6 @@ typedef union _snd_pcm_sync_id {
 	/** 32-bit ID */
 	unsigned int id32[4];
 } snd_pcm_sync_id_t;
-
-/** Infinite wait for snd_pcm_wait() */
-#define SND_PCM_WAIT_INFINITE		(-1)
-/** Wait for next i/o in snd_pcm_wait() */
-#define SND_PCM_WAIT_IO			(-10001)
-/** Wait for drain in snd_pcm_wait() */
-#define SND_PCM_WAIT_DRAIN		(-10002)
 
 /** #SND_PCM_TYPE_METER scope handle */
 typedef struct _snd_pcm_scope snd_pcm_scope_t;
@@ -739,7 +708,6 @@ int snd_pcm_hw_params_is_half_duplex(const snd_pcm_hw_params_t *params);
 int snd_pcm_hw_params_is_joint_duplex(const snd_pcm_hw_params_t *params);
 int snd_pcm_hw_params_can_sync_start(const snd_pcm_hw_params_t *params);
 int snd_pcm_hw_params_can_disable_period_wakeup(const snd_pcm_hw_params_t *params);
-int snd_pcm_hw_params_is_perfect_drain(const snd_pcm_hw_params_t *params);
 int snd_pcm_hw_params_supports_audio_wallclock_ts(const snd_pcm_hw_params_t *params); /* deprecated, use audio_ts_type */
 int snd_pcm_hw_params_supports_audio_ts_type(const snd_pcm_hw_params_t *params, int type);
 int snd_pcm_hw_params_get_rate_numden(const snd_pcm_hw_params_t *params,
@@ -839,8 +807,6 @@ int snd_pcm_hw_params_set_export_buffer(snd_pcm_t *pcm, snd_pcm_hw_params_t *par
 int snd_pcm_hw_params_get_export_buffer(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val);
 int snd_pcm_hw_params_set_period_wakeup(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val);
 int snd_pcm_hw_params_get_period_wakeup(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val);
-int snd_pcm_hw_params_set_drain_silence(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int val);
-int snd_pcm_hw_params_get_drain_silence(snd_pcm_t *pcm, snd_pcm_hw_params_t *params, unsigned int *val);
 
 int snd_pcm_hw_params_get_period_time(const snd_pcm_hw_params_t *params, unsigned int *val, int *dir);
 int snd_pcm_hw_params_get_period_time_min(const snd_pcm_hw_params_t *params, unsigned int *val, int *dir);
@@ -1100,7 +1066,6 @@ const char *snd_pcm_format_name(const snd_pcm_format_t format);
 const char *snd_pcm_format_description(const snd_pcm_format_t format);
 const char *snd_pcm_subformat_name(const snd_pcm_subformat_t subformat);
 const char *snd_pcm_subformat_description(const snd_pcm_subformat_t subformat);
-snd_pcm_subformat_t snd_pcm_subformat_value(const char* name);
 snd_pcm_format_t snd_pcm_format_value(const char* name);
 const char *snd_pcm_tstamp_mode_name(const snd_pcm_tstamp_t mode);
 const char *snd_pcm_state_name(const snd_pcm_state_t state);
@@ -1193,29 +1158,6 @@ int snd_pcm_areas_copy_wrap(const snd_pcm_channel_area_t *dst_channels,
 			    const unsigned int channels,
 			    snd_pcm_uframes_t frames,
 			    const snd_pcm_format_t format);
-
-/**
- * \brief get the address of the given PCM channel area
- * \param area PCM channel area
- * \param offset Offset in frames
- *
- * Returns the pointer corresponding to the given offset on the channel area.
- */
-static inline void *snd_pcm_channel_area_addr(const snd_pcm_channel_area_t *area, snd_pcm_uframes_t offset)
-{
-	return (char *)area->addr + (area->first + area->step * offset) / 8;
-}
-
-/**
- * \brief get the step size of the given PCM channel area in bytes
- * \param area PCM channel area
- *
- * Returns the step size in bytes from the given channel area.
- */
-static inline unsigned int snd_pcm_channel_area_step(const snd_pcm_channel_area_t *area)
-{
-	return area->step / 8;
-}
 
 /** \} */
 
