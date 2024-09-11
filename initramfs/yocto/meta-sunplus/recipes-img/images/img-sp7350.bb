@@ -22,10 +22,6 @@ update_issue() {
     echo "Yocto build ${SDK_VERSION}
 " > ${IMAGE_ROOTFS}/etc/issue
     echo "${MACHINE}-${BOARDNAME}" > ${IMAGE_ROOTFS}/etc/hostname
-    echo "export TERM=vt100" > ${IMAGE_ROOTFS}/home/root/.bashrc
-
-    # Root auto login
-    sed -i '/\/agetty/ s|\/agetty|& -a root|' ${IMAGE_ROOTFS}/lib/systemd/system/serial-getty@.service 
 }
 
 mv_rootfs() {
