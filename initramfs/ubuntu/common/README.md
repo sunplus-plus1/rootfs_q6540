@@ -26,3 +26,11 @@ systemctl unmask snapd.service snapd.socket snapd.seeded.service
 systemctl start snapd.service
 systemctl start snapd.seeded.service
 ```
+
+## etc/cloud/cloud-init.disabled
+
+Disable cloud-init
+
+## lib/systemd/system/smartmontools.service
+
+Prevent to do smartmontools.service that is for storage device with SMART function.

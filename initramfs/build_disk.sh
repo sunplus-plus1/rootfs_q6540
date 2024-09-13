@@ -265,6 +265,14 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	# for VC8000 V4L2 vsi daemon
 	cp -rf prebuilt/vsi/vsidaemon ${DISKOUT}/usr/bin
 
+	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
+		DISTRIB_RELEASE=$(grep '^DISTRIB_RELEASE=' "${DISKOUT}/etc/lsb-release" | awk -F '=' '{print $2}')
+		rootfs_prebuilt_dir=$(realpath ubuntu/prebuilt-app-$DISTRIB_RELEASE)
+		if [ -d "${rootfs_prebuilt_dir}" ]; then
+			find ${rootfs_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
+		fi
+	fi
+
 	find ${rootfs_common_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_common_dir}/ -exec cp -av {} "$DISKOUT" \;
 	if [ -d "${rootfs_src_dir}/disk-private" ]; then
 		cp -av "${rootfs_src_dir}/disk-private/"* "$DISKOUT"
