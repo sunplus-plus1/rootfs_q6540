@@ -1,9 +1,13 @@
 prefix=/usr
-exec_prefix=${prefix}
+libdir=${prefix}/lib/aarch64-linux-gnu
+includedir=${prefix}/include
+
 datarootdir=${prefix}/share
 pkgdatadir=${datarootdir}/wayland
-wayland_scanner=${exec_prefix}/bin/wayland-scanner
+bindir=${prefix}/bin
+wayland_scanner=${bindir}/wayland-scanner
 
 Name: Wayland Scanner
 Description: Wayland scanner
-Version: 1.18.0
+Version: 1.20.0
+Cflags: -I${includedir}

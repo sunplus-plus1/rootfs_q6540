@@ -1,0 +1,11 @@
+prefix=/usr
+libdir=${prefix}/lib/aarch64-linux-gnu
+includedir=${prefix}/include
+
+gbmbackendspath=/usr/lib/aarch64-linux-gnu/gbm
+
+Name: gbm
+Description: Mesa gbm library
+Version: 23.2.1-1ubuntu3.1~22.04.2
+Libs: -L${libdir} -lgbm
+Cflags: -I${includedir}
