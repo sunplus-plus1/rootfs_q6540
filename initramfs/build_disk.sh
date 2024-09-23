@@ -134,7 +134,7 @@ if [ "${OVERLAYFS}" = "1" ]; then
 cat <<EOF > ${DISKOUT}/sbin/restore
 #!/bin/sh
 which systemctl
-if [ "$$?" == "0" ]; then
+if [ "\$?" == "0" ]; then
 	systemctl stop systemd-journald.service
 	systemctl stop systemd-journald.socket
 	journalctl --rotate

@@ -25,10 +25,11 @@ int main(int argc, char *argv[]) {
     const char *device = argv[1];
     int pass_sec = atoi(argv[2]);
     const char *app_to_run = argv[3];
+    int fd;
 
-    int fd = open(device, O_RDONLY);
+    fd = open(device, O_RDONLY);
     if (fd < 0) {
-        perror("Failed to open device");
+        // perror("Failed to open device");
         return 0;
     }
 
