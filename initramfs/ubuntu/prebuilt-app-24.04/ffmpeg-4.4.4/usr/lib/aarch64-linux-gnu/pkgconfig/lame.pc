@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib/aarch64-linux-gnu
+includedir=${prefix}/include
+
+Name: lame
+Description: high quality MPEG Audio Layer III (MP3) encoder library
+Version: 3.100
+Libs: -L${libdir} -lmp3lame
+Cflags: -I${includedir}/lame
