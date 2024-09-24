@@ -268,9 +268,14 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 	if [ -f "${DISKOUT}/etc/lsb-release" ]; then
 		DISTRIB_RELEASE=$(grep '^DISTRIB_RELEASE=' "${DISKOUT}/etc/lsb-release" | awk -F '=' '{print $2}')
 		rootfs_prebuilt_dir=$(realpath ubuntu/prebuilt-app-$DISTRIB_RELEASE)
-		if [ -d "${rootfs_prebuilt_dir}" ]; then
-			find ${rootfs_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
+		gstreamer_prebuilt_dir=${rootfs_prebuilt_dir}/gstreamer-1.22.9
+		ffmpeg_prebuilt_dir=${rootfs_prebuilt_dir}/ffmpeg-4.4.4
+		if [ -d "${gstreamer_prebuilt_dir}" ]; then
+			find ${gstreamer_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${gstreamer_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
 		fi
+		#if [ -d "${ffmpeg_prebuilt_dir}" ]; then
+		#	find ${ffmpeg_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${ffmpeg_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
+		#fi
 	fi
 
 	find ${rootfs_common_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_common_dir}/ -exec cp -av {} "$DISKOUT" \;
