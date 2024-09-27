@@ -1,0 +1,42 @@
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.c
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c	2024-09-27 16:38:10.409814540 +0800
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.c	2024-09-27 16:41:32.271921005 +0800
+@@ -689,6 +689,18 @@
+     if (cpool)
+       gst_object_unref (cpool);
+   }
++
++  /* Wait stream on if get last buffer */
++  if(ret == GST_V4L2_FLOW_LAST_BUFFER){
++    if(self->wait_streamon_times){
++      self->wait_streamon_times--;
++      ret = GST_FLOW_OK;
++    }
++  }
++  else{
++    self->wait_streamon_times = 15;
++  }
++
+   if (ret != GST_FLOW_OK)
+     goto beach;
+ 
+@@ -1167,6 +1179,7 @@
+       gst_v4l2_get_input, gst_v4l2_set_input, NULL);
+ 
+   self->frame_num = -1;
++  self->wait_streamon_times = 15;
+ }
+ 
+ static void
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.h gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.h
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.h	2024-09-27 16:38:10.409814540 +0800
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.h	2024-09-27 16:40:47.605892009 +0800
+@@ -68,7 +68,7 @@
+ 
+   /**/
+   gint64 frame_num;
+-
++  gint64 wait_streamon_times;
+ };
+ 
+ struct _GstV4l2VideoEncClass
