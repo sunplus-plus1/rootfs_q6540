@@ -1,11 +1,38 @@
 diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.c
 --- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c	2024-09-27 16:38:10.409814540 +0800
-+++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.c	2024-09-27 16:41:32.271921005 +0800
-@@ -689,6 +689,18 @@
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videoenc.c	2024-09-30 16:22:18.621663301 +0800
+@@ -553,13 +553,6 @@
+   GST_DEBUG_OBJECT (self, "Negotiating %s profile and level.",
+       klass->codec_name);
+ 
+-  if(klass->set_option){
+-    if (!klass->set_option (self)) {
+-      GST_ERROR_OBJECT (self, "subclass failed to set option");
+-      return FALSE;
+-    }
+-  }	  
+-
+   /* Only renegotiate on upstream changes */
+   if (self->input_state)
+     return TRUE;
+@@ -567,6 +560,13 @@
+   if (!codec)
+     goto done;
+ 
++  if(klass->set_option){
++    if (!klass->set_option (self)) {
++      GST_ERROR_OBJECT (self, "subclass failed to set option");
++      return FALSE;
++    }
++  }
++
+   allowed_caps = gst_pad_get_allowed_caps (GST_VIDEO_ENCODER_SRC_PAD (encoder));
+ 
+   if (allowed_caps) {
+@@ -689,6 +689,17 @@
      if (cpool)
        gst_object_unref (cpool);
    }
-+
 +  /* Wait stream on if get last buffer */
 +  if(ret == GST_V4L2_FLOW_LAST_BUFFER){
 +    if(self->wait_streamon_times){
@@ -20,7 +47,19 @@ diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c gst-plugins-good-
    if (ret != GST_FLOW_OK)
      goto beach;
  
-@@ -1167,6 +1179,7 @@
+@@ -902,6 +913,11 @@
+ 
+     {
+       GstBufferPool *opool = gst_v4l2_object_get_buffer_pool (self->v4l2output);
++
++      if(!gst_buffer_pool_is_active(opool))
++        if(task_state == GST_TASK_STARTED)
++          gst_buffer_pool_set_active(opool, TRUE);
++
+       ret = gst_v4l2_buffer_pool_process (GST_V4L2_BUFFER_POOL (opool),
+           &frame->input_buffer, &frame->system_frame_number);
+       if (opool)
+@@ -1167,6 +1183,7 @@
        gst_v4l2_get_input, gst_v4l2_set_input, NULL);
  
    self->frame_num = -1;
