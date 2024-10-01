@@ -273,9 +273,9 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 		if [ -d "${gstreamer_prebuilt_dir}" ]; then
 			find ${gstreamer_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${gstreamer_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
 		fi
-		#if [ -d "${ffmpeg_prebuilt_dir}" ]; then
-		#	find ${ffmpeg_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${ffmpeg_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
-		#fi
+		if [ -d "${ffmpeg_prebuilt_dir}" ]; then
+			find ${ffmpeg_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${ffmpeg_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
+		fi
 	fi
 
 	find ${rootfs_common_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_common_dir}/ -exec cp -av {} "$DISKOUT" \;
