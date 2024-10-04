@@ -6,7 +6,8 @@ case "$1" in
   suspend)
     if [ -f $WLAN0_FILE ]; then
         #ifconfig wlan0 down
-        echo 0 | sudo tee $WLAN0_FILE
+        #echo 0 | sudo tee $WLAN0_FILE
+        rfkill block wifi
         if [ $? -eq 0 ]; then
            echo mem > /sys/power/state
         fi
@@ -17,7 +18,8 @@ case "$1" in
   resume)
    if [ -f $WLAN0_FILE ]; then
       #ifconfig wlan0 up
-      echo 1 | sudo tee $WLAN0_FILE
+      #echo 1 | sudo tee $WLAN0_FILE
+      rfkill unblock wifi
    fi
     ;;
   *)
