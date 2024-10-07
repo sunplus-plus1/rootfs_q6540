@@ -129,8 +129,7 @@ elif [ "$boot_from" = "SDCARD" ]; then
 fi
 
 # restore rootfs to factory setting
-if [ "${OVERLAYFS}" = "1" ]; then
-
+if [ -d "${DISKOUT}" ] && [ "${OVERLAYFS}" = "1" ]; then
 cat <<EOF > ${DISKOUT}/sbin/restore
 #!/bin/sh
 which systemctl

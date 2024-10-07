@@ -11,3 +11,8 @@ initramfs/yocto/bitbake-cookerdaemon.log
 initramfs/ubuntu/ubuntu-*
 initramfs/ubuntu/ubuntu_prebuild.info
 tools/adckey/adckey
+initramfs/yocto/*/conf/templateconf.cfg
+initramfs/yocto/*/conf/conf-notes.txt
+initramfs/yocto/locked-sigs.inc
+initramfs/yocto/rootfs_path
+initramfs/yocto/bbfile.md5*

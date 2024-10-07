@@ -11,6 +11,7 @@ OELAYOUT_ABI = "12"
 
 # IMAGE_FSTYPES += "ext3 ext4 tar.bz2"
 # PACKAGE_INSTALL = "${IMAGE_INSTALL}"
+EXTRA_USERS_PARAMS += " usermod -p \`openssl passwd -1 123\` root;"
 
 ROOTFS_POSTPROCESS_COMMAND:append = " update_issue;"
 IMAGE_POSTPROCESS_COMMAND:append =  " mv_rootfs;"
@@ -26,10 +27,7 @@ update_issue() {
 
 mv_rootfs() {
     ROOTFS_PATH="${BASE_WORKDIR}/${MACHINE}-${DISTRO}-linux/img-${MACHINE}/${PV}-${PR}"
-    if [ -d "${ROOTFS_PATH}/rootfs" ]; then 
-        rm -rf ${BBLAYERS_FETCH_DIR}/../disk
-        mv ${ROOTFS_PATH}/rootfs ${BBLAYERS_FETCH_DIR}/../disk
-    fi
+    echo "$ROOTFS_PATH" > ${BBLAYERS_FETCH_DIR}/rootfs_path
 }
 
 BUSYBOX_CONFIG_LSUSB = ""
@@ -69,7 +67,9 @@ IMAGE_INSTALL = " \
     openssh-sftp \
     tcpdump \
     openssh \
+    openssh-sftp-server \
     e2fsprogs-resize2fs \
+    e2fsprogs-tune2fs \
     iperf3 \
     glib-2.0 \
     glib-2.0-dev \
@@ -80,10 +80,10 @@ IMAGE_INSTALL = " \
     shadow \
     perl \
     base-passwd \
-    libpam \
     udev \
     python3-evdev \
     systemd \
+    openssl \
 "
 IMAGE_INSTALL:append = " busybox"
 PACKAGECONFIG:append = " vi"
