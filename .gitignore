@@ -8,7 +8,6 @@ busybox-*/
 initramfs/.tmp/
 initramfs/rootfs.tar.bz2
 initramfs/yocto/bitbake-cookerdaemon.log
-initramfs/ubuntu/ubuntu-*
 initramfs/ubuntu/ubuntu_prebuild.info
 tools/adckey/adckey
 initramfs/yocto/*/conf/templateconf.cfg
