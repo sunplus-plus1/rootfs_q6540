@@ -1,24 +1,45 @@
 #!/bin/sh
 
 WLAN0_FILE=/sys/class/net/wlan0/device/rfkill/rfkill1/state
+BLUETOOTH0_LINK=/sys/class/bluetooth/hci0
+BLUETOOTH_SERVICE=/etc/systemd/system/hciuart.service
 
 case "$1" in
   suspend)
     if [ -f $WLAN0_FILE ]; then
         #ifconfig wlan0 down
-        echo 0 | sudo tee $WLAN0_FILE
+        #echo 0 | sudo tee $WLAN0_FILE
+        if [ -L $BLUETOOTH0_LINK ] && [ -f $BLUETOOTH_SERVICE ]; then
+            rfkill block bluetooth
+        fi
+        rfkill block wifi
         if [ $? -eq 0 ]; then
-           echo mem > /sys/power/state
+            echo mem > /sys/power/state
         fi
     else
         echo mem > /sys/power/state
     fi
     ;;
   resume)
-   if [ -f $WLAN0_FILE ]; then
-      #ifconfig wlan0 up
-      echo 1 | sudo tee $WLAN0_FILE
-   fi
+    if [ -f $WLAN0_FILE ]; then
+        #ifconfig wlan0 up
+        #echo 1 | sudo tee $WLAN0_FILE
+        rfkill unblock wifi
+        #pre-->system suspend, post-->system resume
+        #GPIO57-->AP6256 BT_REG_ON: It needs to be set low to high after system suspend and before reload FW bin file.
+        #bluetooth.service will call hciuart.service to reload FW bin file.
+        if [ -L $BLUETOOTH0_LINK ] && [ -f $BLUETOOTH_SERVICE ]; then
+            echo 57 > /sys/class/gpio/export
+            echo 0 > /sys/class/gpio/GPIO57/value
+            sleep 0.1
+            echo 1 > /sys/class/gpio/GPIO57/value
+            sleep 0.2
+            systemctl restart bluetooth.service
+            sleep 0.5
+            rfkill unblock bluetooth
+            sleep 0.1
+	fi
+    fi
     ;;
   *)
     ;;

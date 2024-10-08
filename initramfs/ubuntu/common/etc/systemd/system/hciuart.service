@@ -1,0 +1,17 @@
+[Unit]
+Description=Configure Bluetooth Modems connected by UART
+ConditionFileIsExecutable=/usr/sbin/brcm_patchram_plus
+ConditionFileIsExecutable=/usr/sbin/rfkill
+ConditionFileNotEmpty=/etc/firmware/BCM4345C5_003.006.006.0058.0135.hcd
+PartOf=bluetooth.service
+Before=bluetooth.service
+After=dev-ttyS1.device
+ 
+[Service]
+Type=simple
+ExecStartPre=/usr/sbin/rfkill unblock bluetooth
+ExecStart=/usr/sbin/brcm_patchram_plus -d --enable_hci --no2bytes --tosleep 200000 --baudrate 3000000 --patchram /etc/firmware/BCM4345C5_003.006.006.0058.0135.hcd /dev/ttyS1
+ExecStop=/usr/sbin/rfkill block bluetooth
+ 
+[Install]
+RequiredBy=bluetooth.service

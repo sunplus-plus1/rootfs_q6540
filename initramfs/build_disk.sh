@@ -59,7 +59,7 @@ chmod 0544 ${DISKOUT}/sbin/init
 function resize_partition() {
 
 	if [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
-		
+
 		cp buildroot/systemd/usr/bin/init_tasks.sh ${DISKOUT}/usr/bin/
 		cp buildroot/systemd/usr/bin/resize_partition.sh ${DISKOUT}/usr/bin/
 		cp buildroot/systemd/usr/lib/systemd/system/resize_partition.service ${DISKOUT}/usr/lib/systemd/system
@@ -72,12 +72,12 @@ function resize_partition() {
 
 		cp buildroot/systemd/usr/bin/*  ${DISKOUT}/usr/bin/
 		cp -R buildroot/systemd/usr/lib/systemd ${DISKOUT}${LIBPATH}
-		
+
 		cd ${DISKOUT}/etc/systemd/system/multi-user.target.wants
 		ln -s ${LIBPATH}/systemd/system/resize_partition.service resize_partition.service
 		ln -s ${LIBPATH}/systemd/system/init_tasks.service init_tasks.service
 		cd -
-		
+
 	fi
 
 	# This file is for resize_partition.service use
@@ -89,12 +89,12 @@ EOF
 }
 
 function cp_files() {
-	
+
     cp -R ${DISKZ}lib/firmware/ ${DISKLIB}
 
 	# for overlayfs
 	replace_sbin_init "/lib/systemd/systemd"
-	
+
 	# resize emmc/sdcard partition
 	resize_partition
 
@@ -116,7 +116,7 @@ function cp_files() {
 		cp -av prebuilt/udev/lib/* $DISKOUT/lib
 	fi
 
-	sed -i '/\/agetty/ s|\/agetty|& -a root|' ${DISKOUT}${LIBPATH}/systemd/system/serial-getty@.service 	
+	sed -i '/\/agetty/ s|\/agetty|& -a root|' ${DISKOUT}${LIBPATH}/systemd/system/serial-getty@.service
 }
 
 if [ "$boot_from" = "EMMC" ]; then
@@ -129,8 +129,7 @@ elif [ "$boot_from" = "SDCARD" ]; then
 fi
 
 # restore rootfs to factory setting
-if [ "${OVERLAYFS}" = "1" ]; then
-
+if [ -d "${DISKOUT}" ] && [ "${OVERLAYFS}" = "1" ]; then
 cat <<EOF > ${DISKOUT}/sbin/restore
 #!/bin/sh
 which systemctl
@@ -162,7 +161,7 @@ EOF
 fi
 
 if [ "${ROOTFS_CONTENT}" = "BUILDROOT" ]; then
-    
+
     if [ -f "${DISKLIB}/os-release" ]; then
 		# Remove default config of getty@.service.d
 		if [ -d "${DISKOUT}/usr/lib/systemd/system/getty@.service.d" ]; then
@@ -187,7 +186,7 @@ elif [ "${ROOTFS_CONTENT}" = "BUSYBOX" ]; then
             cp -rf prebuilt/suspend/suspend_closewifi ${DISKOUT}/bin
             sed -i '/\/bin\/echo "End of \$0"/ { x; s|^|/bin/suspend_closewifi \&\n|; G}' ${DISKOUT}/etc/init.d/rcS
         fi
-    fi	
+    fi
 
 elif [ "${ROOTFS_CONTENT:0:5}" = "YOCTO" ]; then
     if [ -f "${DISKOUT}/usr/lib/os-release" ]; then
@@ -205,7 +204,7 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 		if [ "${DISTRIB_ID}" = "Ubuntu" ]; then
             if [ "${OVERLAYFS}" = "1" ]; then
                 # for overlayfs
-                replace_sbin_init "/lib/systemd/systemd"    
+                replace_sbin_init "/lib/systemd/systemd"
                 # resize emmc/sdcard partition
                 resize_partition
             fi
@@ -273,9 +272,9 @@ elif [ "${ROOTFS_CONTENT:0:6}" = "UBUNTU" ]; then
 		if [ -d "${gstreamer_prebuilt_dir}" ]; then
 			find ${gstreamer_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${gstreamer_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
 		fi
-		#if [ -d "${ffmpeg_prebuilt_dir}" ]; then
-		#	find ${ffmpeg_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${ffmpeg_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
-		#fi
+		if [ -d "${ffmpeg_prebuilt_dir}" ]; then
+			find ${ffmpeg_prebuilt_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${ffmpeg_prebuilt_dir}/ -exec cp -av {} "$DISKOUT" \;
+		fi
 	fi
 
 	find ${rootfs_common_dir}/ -maxdepth 1 ! -name 'README.md' ! -path ${rootfs_common_dir}/ -exec cp -av {} "$DISKOUT" \;
@@ -321,8 +320,8 @@ if ! $CROSS_GCC --version 2>/dev/null && ! $CROSS_GCC -v 2>/dev/null; then
 fi
 
 # Busybox
-BBX=busybox-1.31.1
-BBXZ=../busybox/$BBX.tar.xz
+BBX=busybox-1.37.0
+BBXZ=../busybox/$BBX.tar.bz2
 #BBXCFG=configs/bbx_static_defconfig
 BBXCFG=configs/bbx_dynamic_defconfig
 
@@ -388,7 +387,6 @@ else
 	rm -rf $BBX
 	tar xf $BBXZ
 	cp -vf $BBXCFG $BBX/.config
-	for p in ../busybox/patches/*.patch; do patch -p1 -d $BBX < $p; done
 fi
 
 echo "Build busybox"
@@ -417,7 +415,7 @@ if [ "$ARCH" = "arm64" ]; then
 		mkdir -p ${DISKOUT}/etc/modprobe.d
 	fi
 	echo 'options galcore recovery=0 powerManagement=0 showArgs=1 irqLine=197 contiguousBase=0x78000000 contiguousSize=0x8000000' > ${FILE_GALCORE_ARG}
-	
+
 	# for overlayfs
 	replace_sbin_init "/bin/busybox init"
 

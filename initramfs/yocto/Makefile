@@ -31,10 +31,21 @@ check:
 	@echo "REPRODUCIBLE_PATHS = \"1\"" >> $(MACHINE)_build/conf/local.conf
 	@echo "BOARDNAME = \"$(BOARDNAME)\"" >> $(MACHINE)_build/conf/local.conf
 
-build: check
+build: check 
 	@echo "Building the Yocto image $(MACHINE) ..."
 	@if [ -f rootfs.tar.bz2 ] ; then rm rootfs.tar.bz2; fi
-	$(BITBAKE) img-$(MACHINE)
+	@./check_modified.sh; \
+	if [ $$? -ne 0 ]; then \
+		if [ -z "$(MACHINE)" ]; then \
+			echo ""; \
+		else \
+			$(BITBAKE) -c clean img-$(MACHINE); \
+		fi; \
+		rm -rf ../disk; \
+		$(BITBAKE) img-$(MACHINE); \
+		mv `cat rootfs_path`/rootfs ../disk; \
+		mv bbfile.md5.0 bbfile.md5; \
+	fi
 
 # Clean the build directory (not recommended for large projects)
 clean:
@@ -44,7 +55,6 @@ clean:
 	else \
 		$(BITBAKE) -c clean img-$(MACHINE); \
 	fi
-
 
 # Clean everything (use with caution)
 cleanall:
