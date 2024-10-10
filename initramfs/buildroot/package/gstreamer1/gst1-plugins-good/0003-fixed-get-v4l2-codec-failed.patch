@@ -1,0 +1,44 @@
+diff -uNr gst-plugins-good-1.22.9.old/sys/v4l2/gstv4l2h264codec.c gst-plugins-good-1.22.9.new/sys/v4l2/gstv4l2h264codec.c
+--- gst-plugins-good-1.22.9.old/sys/v4l2/gstv4l2h264codec.c	2024-01-25 02:21:13.000000000 +0800
++++ gst-plugins-good-1.22.9.new/sys/v4l2/gstv4l2h264codec.c	2024-08-27 16:59:06.976663663 +0800
+@@ -179,6 +179,13 @@
+ static const gchar *
+ v4l2_level_to_string (gint v4l2_level)
+ {
++
++  /*[Wang.Zhou]Fixed encode failed*/
++  if(v4l2_level < V4L2_MPEG_VIDEO_H264_LEVEL_4_0){
++    GST_WARNING ("Use V4L2_MPEG_VIDEO_H264_LEVEL_4_0 when %i unsupport", v4l2_level);
++    v4l2_level = V4L2_MPEG_VIDEO_H264_LEVEL_4_0;
++  }
++
+   switch (v4l2_level) {
+     case V4L2_MPEG_VIDEO_H264_LEVEL_1_0:
+       return "1";
+diff -uNr gst-plugins-good-1.22.9.old/sys/v4l2/gstv4l2object.c gst-plugins-good-1.22.9.new/sys/v4l2/gstv4l2object.c
+--- gst-plugins-good-1.22.9.old/sys/v4l2/gstv4l2object.c	2024-08-27 17:19:31.396720302 +0800
++++ gst-plugins-good-1.22.9.new/sys/v4l2/gstv4l2object.c	2024-08-27 17:07:29.472686907 +0800
+@@ -5392,6 +5392,10 @@
+       if (need_pool) {
+         GstBufferPool *obj_pool = gst_v4l2_object_get_buffer_pool (obj);
+         if (obj_pool) {
++	  /*[Wang.Zhou]Fixed rtsp failed*/
++          if(V4L2_TYPE_IS_OUTPUT(obj->type) && gst_buffer_pool_is_active (obj_pool))
++              gst_buffer_pool_set_active(obj_pool, FALSE);
++          
+           if (!gst_buffer_pool_is_active (obj_pool))
+             pool = gst_object_ref (obj_pool);
+ 
+diff -uNr gst-plugins-good-1.22.9.old/sys/v4l2/v4l2-utils.c gst-plugins-good-1.22.9.new/sys/v4l2/v4l2-utils.c
+--- gst-plugins-good-1.22.9.old/sys/v4l2/v4l2-utils.c	2024-01-25 02:21:13.000000000 +0800
++++ gst-plugins-good-1.22.9.new/sys/v4l2/v4l2-utils.c	2024-08-27 16:53:07.508647034 +0800
+@@ -131,7 +131,8 @@
+   while (device == NULL) {
+     it->video_idx++;
+ 
+-    if (it->video_idx >= 64) {
++    /*[Wang.Zhou]video codec device start from 64*/
++    if (it->video_idx >= 128) {
+       it->video_idx = 0;
+       it->base_idx++;
+     }
