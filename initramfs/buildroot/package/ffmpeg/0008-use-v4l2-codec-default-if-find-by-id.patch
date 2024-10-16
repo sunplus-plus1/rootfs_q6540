@@ -1,0 +1,30 @@
+diff -uNr ffmpeg-4.4.4.a/libavcodec/allcodecs.c ffmpeg-4.4.4.b/libavcodec/allcodecs.c
+--- ffmpeg-4.4.4.a/libavcodec/allcodecs.c	2024-10-14 10:30:06.593849901 +0800
++++ ffmpeg-4.4.4.b/libavcodec/allcodecs.c	2024-10-15 11:34:27.097360082 +0800
+@@ -850,6 +850,7 @@
+ #endif
+ 
+ static AVOnce av_codec_static_init = AV_ONCE_INIT;
++static AVCodec *find_codec_by_name(const char *name, int (*x)(const AVCodec *));
+ static void av_codec_init_static(void)
+ {
+     for (int i = 0; codec_list[i]; i++) {
+@@ -924,6 +925,18 @@
+     const AVCodec *p, *experimental = NULL;
+     void *i = 0;
+ 
++    //Use hw codec for H264 and JPEG
++    if(id == AV_CODEC_ID_H264){
++        experimental = find_codec_by_name("h264_v4l2m2m", x);
++    }
++    else if(id == AV_CODEC_ID_MJPEG){
++        experimental = find_codec_by_name("jpeg_v4l2m2m", x);
++    }
++    if(experimental){
++        printf("FFMPEG: use codec %s\n", experimental->name);
++        return (AVCodec*)experimental;
++    } 
++
+     id = remap_deprecated_codec_id(id);
+ 
+     while ((p = av_codec_iterate(&i))) {
