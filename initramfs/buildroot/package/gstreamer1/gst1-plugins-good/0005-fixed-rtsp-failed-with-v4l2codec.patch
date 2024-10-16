@@ -34,7 +34,7 @@ diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videoenc.c gst-plugins-good-
        gst_object_unref (cpool);
    }
 +  /* Wait stream on if get last buffer */
-+  if(ret == GST_V4L2_FLOW_LAST_BUFFER){
++  if(ret == GST_V4L2_FLOW_LAST_BUFFER || ret == GST_FLOW_EOS){
 +    if(self->wait_streamon_times){
 +      g_usleep(10*1000);
 +      self->wait_streamon_times--;
