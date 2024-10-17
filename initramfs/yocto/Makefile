@@ -2,6 +2,9 @@
 INIT_ENV_SCRIPT := ./oe-init-build-env
 BITBAKE := bitbake
 
+MACHINE ?= sp7350
+BOARDNAME ?= ev
+
 OEROOT := $(CURDIR)
 export OEROOT
 
@@ -36,6 +39,7 @@ build: check
 	@if [ -f rootfs.tar.bz2 ] ; then rm rootfs.tar.bz2; fi
 	@./check_modified.sh; \
 	if [ $$? -ne 0 ]; then \
+		set -e; \
 		if [ -z "$(MACHINE)" ]; then \
 			echo ""; \
 		else \
@@ -43,18 +47,18 @@ build: check
 		fi; \
 		rm -rf ../disk; \
 		$(BITBAKE) img-$(MACHINE); \
+		if [ $$? -ne 0 ]; then \
+			exit 1; \
+		fi; \
 		mv `cat rootfs_path`/rootfs ../disk; \
+		mkdir -p ../disk/usr/lib/fonts; \
+		cp files/* ../disk/usr/lib/fonts; \
 		mv bbfile.md5.0 bbfile.md5; \
 	fi
 
 # Clean the build directory (not recommended for large projects)
-clean:
-	@echo "Cleaning the Yocto build directory..."
-	@if [ -z "$(MACHINE)" ]; then \
-		echo ""; \
-	else \
-		$(BITBAKE) -c clean img-$(MACHINE); \
-	fi
+clean: check
+	$(BITBAKE) -c cleansstate $(IMAGE);
 
 # Clean everything (use with caution)
 cleanall:
