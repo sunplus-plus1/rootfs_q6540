@@ -87,6 +87,7 @@ IMAGE_INSTALL = " \
     rsync \
     tslib \
     swupdate \
+    cpio \
 "
 
 IMAGE_INSTALL:append = " busybox"
