@@ -67,7 +67,7 @@ cleanall:
 		echo ""; \
 	else \
 		cd $(MACHINE)_build; \
-		rm bitbake*; \
-		rm -rf cache/ downloads/ sstate-cache/ tmp-glibc/ tmp/ conf/conf-notes.txt conf/templateconf.cfg
+		rm -f bitbake*; \
+		rm -rf cache/ downloads/ sstate-cache/ tmp-glibc/ tmp/ conf/conf-notes.txt conf/templateconf.cfg; \
 	fi
 
