@@ -6,6 +6,12 @@ config BR2_PACKAGE_SWUPDATE
 	depends on BR2_TOOLCHAIN_HAS_SYNC_4 # json-c
 	select BR2_PACKAGE_JSON_C
 	select BR2_PACKAGE_LIBUBOOTENV
+	select BR2_PACKAGE_CPIO
+	select BR2_PACKAGE_LIBCONFIG
+	select BR2_PACKAGE_LIBOPENSSL
+	select BR2_PACKAGE_LIBOPENSSL_BIN
+	select BR2_PACKAGE_MBEDTLS
+	select BR2_PACKAGE_WOLFSSL
 	help
 	  swupdate provides a reliable way to update the software on
 	  an embedded system.
