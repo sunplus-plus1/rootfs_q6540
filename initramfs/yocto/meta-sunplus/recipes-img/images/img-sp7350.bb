@@ -84,11 +84,12 @@ IMAGE_INSTALL = " \
     python3-evdev \
     systemd \
     openssl \
+    rsync \
+    tslib \
+    swupdate \
+    cpio \
 "
+
 IMAGE_INSTALL:append = " busybox"
 PACKAGECONFIG:append = " vi"
-
-# IMAGE_INSTALL:append = " qtbase"
-# IMAGE_INSTALL:append = " matchbox-desktop matchbox-wm matchbox-panel matchbox-keyboard xserver-xf86-config matchbox-session matchbox-terminal"
-# IMAGE_INSTALL:append = " xserver-xorg xinit xauth xterm xclock font-alias font-misc-misc xf86-video-modesetting xf86-video-fbdev twm"
-# IMAGE_INSTALL:append = " adwaita-icon-theme  mesa mesa-driver-swrast"
+IMAGE_INSTALL:append = " qtbase"

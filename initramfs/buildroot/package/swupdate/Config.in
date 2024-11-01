@@ -6,6 +6,12 @@ config BR2_PACKAGE_SWUPDATE
 	depends on BR2_TOOLCHAIN_HAS_SYNC_4 # json-c
 	select BR2_PACKAGE_JSON_C
 	select BR2_PACKAGE_LIBUBOOTENV
+	select BR2_PACKAGE_CPIO
+	select BR2_PACKAGE_LIBCONFIG
+	select BR2_PACKAGE_LIBOPENSSL
+	select BR2_PACKAGE_LIBOPENSSL_BIN
+	select BR2_PACKAGE_MBEDTLS
+	select BR2_PACKAGE_WOLFSSL
 	help
 	  swupdate provides a reliable way to update the software on
 	  an embedded system.
@@ -83,6 +89,89 @@ config BR2_PACKAGE_SWUPDATE_INSTALL_WEBSITE
 	  This is necessary if you want to run swupdate with the
 	  embedded webserver and do not provide an own website to be
 	  installed to /var/www/swupdate.
+
+config BR2_PACKAGE_SWUPDATE_HW_COMPATIBILITY
+	bool "swupdate check for hw / sw compatibility"
+	default y
+	help
+	  Enable checking hardware / software compatibility
+
+choice
+	prompt "select SSL implementation"
+	default BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL
+	help
+	  Select SSL implementation for hashing, verifying and decrypting images.
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_NONE
+		bool "None"
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL
+		bool "OpenSSL"
+		depends on BR2_PACKAGE_OPENSSL
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL
+		bool "wolfSSL (with OpenSSL compatibility layer)"
+		depends on BR2_PACKAGE_WOLFSSL
+		select BR2_PACKAGE_SWUPDATE_CMS_IGNORE_CERTIFICATE_PURPOSE
+		select BR2_PACKAGE_SWUPDATE_CMS_SKIP_UNKNOWN_SIGNERS
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+		bool "mbedTLS"
+		depends on BR2_PACKAGE_MBEDTLS
+endchoice
+
+config BR2_PACKAGE_SWUPDATE_HASH_VERIFY
+	bool "add sha256 hash to each image"
+	default y
+	depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+	help
+	  Allow to add a sha256 hash to an artifact.
+	  This is automatically set in case of Signed Image
+
+config BR2_PACKAGE_SWUPDATE_SIGNED_IMAGES
+	bool "Enable verification of signed images"
+	default y
+	depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+	select BR2_PACKAGE_SWUPDATE_HASH_VERIFY
+
+choice
+	prompt "Signature verification algorithm"
+	default BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+	depends on BR2_PACKAGE_SWUPDATE_SIGNED_IMAGES
+	help
+	  Select if the signature algorithm for signed images is a raw RSA signature
+	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS) with
+	  OpenSSL/LibreSSL.
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_RAWRSA
+		bool "RSA PKCS#1.5"
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_RSAPSS
+		bool "RSA PSS"
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
+		depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_GPG
+		bool "GPG signing"
+endchoice
+
+menu "CMS / PKCS#7 signature verification options"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_IGNORE_EXPIRED_CERTIFICATE
+	bool "Ignore expired certificates"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_IGNORE_CERTIFICATE_PURPOSE
+	bool "Ignore X.509 certificate purpose"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_SKIP_UNKNOWN_SIGNERS
+	bool "Ignore unverifiable signatures if known signer verifies"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+endmenu
 endif
 
 comment "swupdate needs a toolchain w/ dynamic library, threads"
