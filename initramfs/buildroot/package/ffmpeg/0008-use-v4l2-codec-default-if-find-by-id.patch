@@ -28,3 +28,118 @@ diff -uNr ffmpeg-4.4.4.a/libavcodec/allcodecs.c ffmpeg-4.4.4.b/libavcodec/allcod
      id = remap_deprecated_codec_id(id);
  
      while ((p = av_codec_iterate(&i))) {
+diff -uNr ffmpeg-4.4.4.a/libswscale/aarch64/swscale_unscaled.c ffmpeg-4.4.4.b/libswscale/aarch64/swscale_unscaled.c
+--- ffmpeg-4.4.4.a/libswscale/aarch64/swscale_unscaled.c	2023-04-13 02:01:50.000000000 +0800
++++ ffmpeg-4.4.4.b/libswscale/aarch64/swscale_unscaled.c	2024-10-23 10:59:00.856713819 +0800
+@@ -121,9 +121,111 @@
+     SET_FF_NVX_TO_ALL_RGBX_FUNC(yuv422p, YUV422P, accurate_rnd);
+ }
+
++///////
++#include "arm_neon.h"
++static const uint8_t Y_SUBS[8] = { 16, 16, 16, 16, 16, 16, 16, 16 };
++static const uint8_t UV_SUBS[8] = { 128, 128, 128, 128, 128, 128, 128, 128 };
++static int nv12_to_bgr24_neon(SwsContext *c, const uint8_t *_src[],
++                   int _srcStride[], int _srcSliceY,
++                   int _srcSliceH, uint8_t *_dst[], int _dstStride[])
++{
++    unsigned char *src = (unsigned char*)_src[0];
++    unsigned char *RGBOut = (unsigned char*)_dst[0];
++
++    int i, j;
++    int width = c->srcW;
++    int height = c->srcH;
++    int nWH = width * height;
++    unsigned char *pY1 = src;
++    unsigned char *pY2 = src + width;
++    unsigned char *pUV = src + nWH;
++
++    uint8x8_t Y_SUBvec = vld1_u8(Y_SUBS);
++    uint8x8_t UV_SUBvec = vld1_u8(UV_SUBS);
++
++    int width3 = (width << 2) - width;
++    int width9 = (width << 3) + width;
++    unsigned char *RGBOut1 = RGBOut;
++    unsigned char *RGBOut2 = RGBOut1 + width3;
++
++    unsigned char tempUV[8];
++    // YUV 4:2:0
++    for (j = 0; j < height; j += 2) {
++        for (i = 0; i < width; i += 8) {
++            tempUV[0] = pUV[1];
++            tempUV[1] = pUV[3];
++            tempUV[2] = pUV[5];
++            tempUV[3] = pUV[7];
++
++            tempUV[4] = pUV[0];
++            tempUV[5] = pUV[2];
++            tempUV[6] = pUV[4];
++            tempUV[7] = pUV[6];
++
++            pUV += 8;
++
++            uint8x8_t nUVvec = vld1_u8(tempUV);
++            int16x8_t nUVvec16 = vmovl_s8((int8x8_t)vsub_u8(nUVvec, UV_SUBvec));//-128~127
++            int16x4_t V_4 = vget_low_s16((int16x8_t)nUVvec16);
++            int16x4x2_t V16x4x2 = vzip_s16(V_4, V_4);
++
++            int16x8_t* V16x8 = (int16x8_t*)(&V16x4x2);
++            int16x4_t U_4 = vget_high_s16(nUVvec16);
++            int16x4x2_t U16x4x2 = vzip_s16(U_4, U_4);
++
++            int16x8_t* U16x8 = (int16x8_t*)(&U16x4x2);
++
++            int16x8_t VV1 = vmulq_n_s16(*V16x8, 102);
++            int16x8_t UU1 = vmulq_n_s16(*U16x8, 129);
++            int16x8_t VVUU1 = vmlaq_n_s16(vmulq_n_s16(*V16x8, 52), *U16x8, 25);
++
++            uint8x8_t nYvec;
++            uint8x8x3_t RGB;
++            uint16x8_t Y16;
++
++            nYvec = vld1_u8(pY1);
++            pY1 += 8;
++
++            Y16 = vmulq_n_u16(vmovl_u8(vqsub_u8(nYvec, Y_SUBvec)), 74);
++
++            RGB.val[0] = vqmovun_s16(vshrq_n_s16((int16x8_t)vaddq_u16(Y16, (uint16x8_t)UU1), 6));
++            RGB.val[1] = vqmovun_s16(vshrq_n_s16((int16x8_t)vsubq_u16(Y16, (uint16x8_t)VVUU1), 6));
++            RGB.val[2] = vqmovun_s16(vshrq_n_s16((int16x8_t)vaddq_u16(Y16, (uint16x8_t)VV1), 6));
++            vst3_u8(RGBOut1, RGB);
++            RGBOut1 += 24;
++
++            nYvec = vld1_u8(pY2);
++            pY2 += 8;
++
++            Y16 = vmulq_n_u16(vmovl_u8(vqsub_u8(nYvec, Y_SUBvec)), 74);
++            RGB.val[0] = vqmovun_s16(vshrq_n_s16((int16x8_t)vaddq_u16(Y16, (uint16x8_t)UU1), 6));
++            RGB.val[1] = vqmovun_s16(vshrq_n_s16((int16x8_t)vsubq_u16(Y16, (uint16x8_t)VVUU1), 6));
++            RGB.val[2] = vqmovun_s16(vshrq_n_s16((int16x8_t)vaddq_u16(Y16, (uint16x8_t)VV1), 6));
++            vst3_u8(RGBOut2, RGB);
++            RGBOut2 += 24;
++        }
++        RGBOut1 += width3;
++        RGBOut2 += width3;
++        pY1 += width;
++        pY2 += width;
++    }
++    return 0;
++}
++
+ void ff_get_unscaled_swscale_aarch64(SwsContext *c)
+ {
+     int cpu_flags = av_get_cpu_flags();
+     if (have_neon(cpu_flags))
+         get_unscaled_swscale_neon(c);
++    if(!c->swscale){
++        if (c->srcFormat == AV_PIX_FMT_NV12
++            && c->dstFormat == AV_PIX_FMT_BGR24
++            && c->srcW == c->dstW
++            && c->srcH == c->dstH
++            && !(c->srcH & 1)
++            && !(c->srcW & 15)){
++            printf("use nv12_to_bgr24_neon\n");
++            c->swscale = nv12_to_bgr24_neon;
++        }
++    }
+ }
