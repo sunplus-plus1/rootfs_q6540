@@ -15,3 +15,8 @@ initramfs/yocto/*/conf/conf-notes.txt
 initramfs/yocto/locked-sigs.inc
 initramfs/yocto/rootfs_path
 initramfs/yocto/bbfile.md5*
+initramfs/prebuilt/vip9000sdk*
+initramfs/prebuilt/vip9000sdk/*
+initramfs/ubuntu/prebuilt-app-*
+initramfs/ubuntu/prebuilt-app-*/**
+initramfs/ubuntu/ubuntu-*/ubuntu-*
