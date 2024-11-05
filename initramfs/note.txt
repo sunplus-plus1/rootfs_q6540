@@ -1,0 +1,8 @@
+How to update libs from toolchain :
+
+cp -a <toolchain>/xxx/sysroot/lib <rootfs>/
+cp -a <toolchain>/xxx/sysroot/usr/lib <rootfs>/usr/
+cd <rootfs>/lib && rm -f *.a *.o
+cd <rootfs>/usr/lib && rm -f *.a *.o
+xxx-strip --strip-unneeded <rootfs>/lib/*
+xxx-strip --strip-unneeded <rootfs>/usr/lib/*

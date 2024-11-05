@@ -1,0 +1,55 @@
+#!/bin/sh		
+
+if [ ! -L /sbin/init ]; then
+	# for OVERLAYFS
+	/usr/bin/init_tasks.sh
+else
+	if [ -d /sys/class/remoteproc/remoteproc0 ];then
+		if [ -f /lib/firmware/firmware ];then
+			echo "Boot CM4 firmware by remoteproc"
+			echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+			echo start > /sys/class/remoteproc/remoteproc0/state
+		fi
+	fi
+	if [ -e /dev/galcore ];then
+		echo "Change NPU device "galcore" file attritute"
+		chmod 666 /dev/galcore
+	fi
+
+	if ! grep "video" /etc/group | grep -q "sunplus"; then
+		usermod -G video -a sunplus
+	fi
+	if ! grep "audio" /etc/group | grep -q "sunplus"; then
+		usermod -G audio -a sunplus
+	fi
+
+	PART_FLAG=/etc/init.d/partflag
+	if [ ! -f $PART_FLAG ];then
+		ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
+		echo "ROOT_PARTITION=$ROOT_PART"
+
+		ROOT_DEV=/dev/$(echo "$ROOT_PART" | cut -c1-7)
+		echo "ROOT_DEVICE=$ROOT_DEV"
+
+		RESIZE_PART=/dev/$ROOT_PART
+		echo "RESIZE_PARTITION=$RESIZE_PART"
+
+		ST_PART_NUM=$(parted $ROOT_DEV -ms unit s p | tail -n 1 | cut -f 1 -d:)
+		echo "ST_PART_NUM=$ST_PART_NUM"
+
+		if [ $ST_PART_NUM -ne 2 ];then
+			echo "Not the SD card, just resize2fs rootfs partition $RESIZE_PART to max disk capacity"
+		else
+			echo "SD card , parted resizepart rootfs device: $ROOT_DEV and resize2fs rootfs partition: $RESIZE_PART to max disk capacity"
+			parted $ROOT_DEV resizepart 2 100%
+			if [ "$?" != "0" ]; then
+				echo "parted failed!"
+				touch $PART_FLAG
+				exit 1
+			fi
+		fi
+		# Resize the filesystem
+		resize2fs $RESIZE_PART
+		touch $PART_FLAG
+	fi
+fi

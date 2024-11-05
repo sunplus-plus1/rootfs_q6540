@@ -1,0 +1,56 @@
+#!/bin/sh
+
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
+/bin/echo "$0 starts..."
+/bin/mount -t proc none /proc
+/bin/mount -t sysfs none /sys
+
+if ! /bin/mountpoint -q /dev; then
+	/bin/mount -t devtmpfs devtmpfs /dev
+fi
+
+# mount all other filesystems (/etc/fstab)
+/bin/echo "Mounting other filesystems ..."
+/bin/mount -a
+
+rm -f /dev/rtc*
+
+if [ -d /proc/net ]; then
+	/sbin/mdev -d
+	/sbin/udevtrigger.sh
+fi
+
+mkdir -p /dev/pts /dev/shm
+/bin/mount -t devpts -o mode=620 none /dev/pts
+/bin/mount -t tmpfs tmpfs /dev/shm
+/bin/mount -t tmpfs tmpfs /tmp
+
+if [ -f /etc/init.d/rc.extra ];then
+	echo "rc.extra [bg]"
+	/etc/init.d/rc.extra &
+fi
+
+if [ -f /etc/init.d/rc.init ];then
+	/etc/init.d/rc.init
+fi
+
+if [ -f /usr/bin/adckey ];then
+	/usr/bin/adckey /dev/input/event0 10 "restore" &
+fi
+
+if [ -f /etc/init.d/rc.sdcardboot ];then
+	/etc/init.d/rc.sdcardboot
+elif [ -f /etc/init.d/rc.resizefs ];then
+	/etc/init.d/rc.resizefs
+fi
+
+if [ -d /sys/class/remoteproc/remoteproc0 ];then
+if [ -f /lib/firmware/firmware ];then
+	echo "Boot CM4 firmware by remoteproc"
+	echo firmware > /sys/class/remoteproc/remoteproc0/firmware
+	echo start > /sys/class/remoteproc/remoteproc0/state
+fi
+fi
+
+/bin/echo "End of $0"

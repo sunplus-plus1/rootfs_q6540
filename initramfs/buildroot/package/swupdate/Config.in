@@ -1,0 +1,180 @@
+config BR2_PACKAGE_SWUPDATE
+	bool "swupdate"
+	depends on !BR2_STATIC_LIBS
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	depends on BR2_USE_MMU # fork()
+	depends on BR2_TOOLCHAIN_HAS_SYNC_4 # json-c
+	select BR2_PACKAGE_JSON_C
+	select BR2_PACKAGE_LIBUBOOTENV
+	select BR2_PACKAGE_CPIO
+	select BR2_PACKAGE_LIBCONFIG
+	select BR2_PACKAGE_LIBOPENSSL
+	select BR2_PACKAGE_LIBOPENSSL_BIN
+	select BR2_PACKAGE_MBEDTLS
+	select BR2_PACKAGE_WOLFSSL
+	help
+	  swupdate provides a reliable way to update the software on
+	  an embedded system.
+
+	  swupdate is highly configurable to fit the targets
+	  requirements and to minimize the footprint. The provided
+	  default configuration file BR2_PACKAGE_SWUPDATE_CONFIG will
+	  enable swupdate with an embedded webserver, a parser and a
+	  handler for raw NAND or NOR flash.
+
+	  The default configuration file builds a reasonable firmware
+	  update system with minimal external dependencies in mind.
+	  If you like to use your own modified configuration,
+	  you have to select the necessary packages manually:
+
+	  * Select BR2_PACKAGE_LUA or BR2_PACKAGE_LUAJIT if you want
+	    want to have Lua support.
+	  * Select BR2_PACKAGE_LIBCURL if you want to use the download
+	    feature.
+	  * Select BR2_PACKAGE_OPENSSL or BR2_PACKAGE_MBEDTLS if you
+	    want to add encryption support.
+	  * Select BR2_PACKAGE_MTD if you want to use swupdate with
+	    UBI partitions.
+	  * Select BR2_PACKAGE_ZLIB if you want to deal with gzip
+	    compressed archives.
+	  * Select BR2_PACKAGE_ZSTD if you want to deal with zstd
+	    compressed archives.
+	  * Select BR2_PACKAGE_ZEROMQ to add support for using a
+	    remote handler.
+	  * Select BR2_PACKAGE_LIBRSYNC to add support for using
+	    rdiff handler.
+	  * Select BR2_PACKAGE_LIBGPIOD to add support for
+	    microcontroller firmware update.
+	  * Select BR2_PACKAGE_EFIBOOTMGR to add support for EFI Boot
+	    Guard.
+	  * Select BR2_PACKAGE_LIBCURL, BR2_PACKAGE_LIBWEBSOCKETS,
+	    and BR2_PACKAGE_LIBURIPARSER
+	    to add support for the SWU forwarder.
+
+	  https://sbabic.github.io/swupdate
+
+if BR2_PACKAGE_SWUPDATE
+
+config BR2_PACKAGE_SWUPDATE_CONFIG
+	string "swupdate configuration file"
+	default "package/swupdate/swupdate.config"
+	help
+	  Path to the swupdate configuration file.
+
+	  I you wish to use your own modified swupdate configuration
+	  file specify the config file location with this option.
+
+config BR2_PACKAGE_SWUPDATE_USB
+	bool "swupdate usb"
+	depends on BR2_PACKAGE_SYSTEMD
+	help
+	  Enable update from USB disk.
+
+comment "swupdate usb needs systemd"
+	depends on !BR2_PACKAGE_SYSTEMD
+
+config BR2_PACKAGE_SWUPDATE_WEBSERVER
+	bool "swupdate webserver"
+	default y
+	help
+	  Enable update from remote using a web server on the target.
+
+config BR2_PACKAGE_SWUPDATE_INSTALL_WEBSITE
+	bool "install default website"
+	default y
+	depends on BR2_PACKAGE_SWUPDATE_WEBSERVER
+	help
+	  Install the provided website to /var/www/swupdate.
+
+	  This is necessary if you want to run swupdate with the
+	  embedded webserver and do not provide an own website to be
+	  installed to /var/www/swupdate.
+
+config BR2_PACKAGE_SWUPDATE_HW_COMPATIBILITY
+	bool "swupdate check for hw / sw compatibility"
+	default y
+	help
+	  Enable checking hardware / software compatibility
+
+choice
+	prompt "select SSL implementation"
+	default BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL
+	help
+	  Select SSL implementation for hashing, verifying and decrypting images.
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_NONE
+		bool "None"
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL
+		bool "OpenSSL"
+		depends on BR2_PACKAGE_OPENSSL
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL
+		bool "wolfSSL (with OpenSSL compatibility layer)"
+		depends on BR2_PACKAGE_WOLFSSL
+		select BR2_PACKAGE_SWUPDATE_CMS_IGNORE_CERTIFICATE_PURPOSE
+		select BR2_PACKAGE_SWUPDATE_CMS_SKIP_UNKNOWN_SIGNERS
+
+	config BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+		bool "mbedTLS"
+		depends on BR2_PACKAGE_MBEDTLS
+endchoice
+
+config BR2_PACKAGE_SWUPDATE_HASH_VERIFY
+	bool "add sha256 hash to each image"
+	default y
+	depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+	help
+	  Allow to add a sha256 hash to an artifact.
+	  This is automatically set in case of Signed Image
+
+config BR2_PACKAGE_SWUPDATE_SIGNED_IMAGES
+	bool "Enable verification of signed images"
+	default y
+	depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_MBEDTLS
+	select BR2_PACKAGE_SWUPDATE_HASH_VERIFY
+
+choice
+	prompt "Signature verification algorithm"
+	default BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+	depends on BR2_PACKAGE_SWUPDATE_SIGNED_IMAGES
+	help
+	  Select if the signature algorithm for signed images is a raw RSA signature
+	  (following PKCS#1.5) or if it uses Cryptographic Message Syntax (CMS) with
+	  OpenSSL/LibreSSL.
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_RAWRSA
+		bool "RSA PKCS#1.5"
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_RSAPSS
+		bool "RSA PSS"
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+		bool "Cryptographic Message Syntax (CMS) / PKCS#7"
+		depends on BR2_PACKAGE_SWUPDATE_SSL_IMPL_OPENSSL || BR2_PACKAGE_SWUPDATE_SSL_IMPL_WOLFSSL
+
+	config BR2_PACKAGE_SWUPDATE_SIGALG_GPG
+		bool "GPG signing"
+endchoice
+
+menu "CMS / PKCS#7 signature verification options"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_IGNORE_EXPIRED_CERTIFICATE
+	bool "Ignore expired certificates"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_IGNORE_CERTIFICATE_PURPOSE
+	bool "Ignore X.509 certificate purpose"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+
+config BR2_PACKAGE_SWUPDATE_CMS_SKIP_UNKNOWN_SIGNERS
+	bool "Ignore unverifiable signatures if known signer verifies"
+	depends on BR2_PACKAGE_SWUPDATE_SIGALG_CMS
+endmenu
+endif
+
+comment "swupdate needs a toolchain w/ dynamic library, threads"
+	depends on BR2_USE_MMU
+	depends on BR2_TOOLCHAIN_HAS_SYNC_4
+	depends on BR2_STATIC_LIBS || !BR2_TOOLCHAIN_HAS_THREADS

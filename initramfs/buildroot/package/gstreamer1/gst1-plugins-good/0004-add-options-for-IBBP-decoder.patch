@@ -1,0 +1,105 @@
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2object.c gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2object.c
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2object.c	2024-09-18 09:32:44.397446644 +0000
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2object.c	2024-09-18 09:55:50.029510740 +0000
+@@ -524,6 +524,8 @@
+   v4l2object->n_v4l2_planes = 0;
+ 
+   v4l2object->no_initial_format = FALSE;
++  
++  v4l2object->extern_buffer = FALSE;
+ 
+   v4l2object->poll = gst_poll_new (TRUE);
+   v4l2object->can_poll_device = TRUE;
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2object.h gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2object.h
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2object.h	2024-01-24 18:21:13.000000000 +0000
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2object.h	2024-09-18 09:55:50.041510741 +0000
+@@ -44,10 +44,12 @@
+ 
+ /* size of v4l2 buffer pool in streaming case, obj->info needs to be valid */
+ #define GST_V4L2_MIN_BUFFERS(obj) \
+-    ((GST_VIDEO_INFO_INTERLACE_MODE (&obj->info) == \
++    /* [Wang.Zhou] Add extern buffer for IBBP decode, do not change this value */ \
++    (obj->extern_buffer == TRUE ?  32 : \
++      ((GST_VIDEO_INFO_INTERLACE_MODE (&obj->info) == \
+       GST_VIDEO_INTERLACE_MODE_ALTERNATE) ? \
+       /* 2x buffers needed with each field in its own buffer */ \
+-      4 : 2)
++      8 : 4))
+ 
+ /* max frame width/height */
+ #define GST_V4L2_MAX_SIZE (1<<15) /* 2^15 == 32768 */
+@@ -200,6 +202,7 @@
+   GstStructure *extra_controls;
+   gboolean keep_aspect;
+   GValue *par;
++  gboolean extern_buffer;
+ 
+   /* funcs */
+   GstV4l2GetInOutFunction  get_in_out_func;
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videodec.c gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videodec.c
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videodec.c	2024-09-18 09:32:34.917446205 +0000
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videodec.c	2024-09-18 09:56:28.989512543 +0000
+@@ -58,6 +58,7 @@
+ enum
+ {
+   PROP_0,
++  PROP_V4L2_EXTERN_BUFFER,
+   V4L2_STD_OBJECT_PROPS
+ };
+ 
+@@ -80,6 +81,11 @@
+         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+       }
+       break;
++    case PROP_V4L2_EXTERN_BUFFER:
++        self->use_extern_buffer = g_value_get_boolean(value);
++        if(self->v4l2capture)
++            self->v4l2capture->extern_buffer = self->use_extern_buffer;
++        break;
+ 
+       /* By default, only set on output */
+     default:
+@@ -1246,6 +1252,7 @@
+ gst_v4l2_video_dec_init (GstV4l2VideoDec * self)
+ {
+   /* V4L2 object are created in subinstance_init */
++  self->use_extern_buffer = TRUE;
+ }
+ 
+ static void
+@@ -1268,6 +1275,9 @@
+       GST_OBJECT (GST_VIDEO_DECODER_SRC_PAD (self)),
+       V4L2_BUF_TYPE_VIDEO_CAPTURE, klass->default_device,
+       gst_v4l2_get_input, gst_v4l2_set_input, NULL);
++
++  if(self->v4l2capture)
++    self->v4l2capture->extern_buffer = self->use_extern_buffer;
+ }
+ 
+ static void
+@@ -1319,6 +1329,12 @@
+   element_class->change_state =
+       GST_DEBUG_FUNCPTR (gst_v4l2_video_dec_change_state);
+ 
++  g_object_class_install_property (gobject_class, PROP_V4L2_EXTERN_BUFFER,
++        g_param_spec_boolean ("extern-buffer", "Extern Buffer",
++            "Use extern buffer for decoder",
++            FALSE,
++            G_PARAM_WRITABLE | G_PARAM_STATIC_STRINGS));
++
+   gst_v4l2_object_install_m2m_properties_helper (gobject_class);
+ }
+ 
+diff -uNr gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videodec.h gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videodec.h
+--- gst-plugins-good-1.22.9.a/sys/v4l2/gstv4l2videodec.h	2024-01-24 18:21:13.000000000 +0000
++++ gst-plugins-good-1.22.9.b/sys/v4l2/gstv4l2videodec.h	2024-09-18 09:55:50.065510742 +0000
+@@ -62,6 +62,9 @@
+   GstVideoCodecState *input_state;
+   gboolean active;
+   GstFlowReturn output_flow;
++  
++  /* properties */
++  gboolean use_extern_buffer;
+ 
+   /* Source Change Events */
+   gboolean wait_for_source_change;
